@@ -341,9 +341,19 @@ body.view-month .cal-scroll{display:none}
 /* 2=20%, 1=✕ → 赤 */
 .habit-star.sel-2{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.5);color:var(--red)}
 .habit-star.sel-1{background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.3);color:rgba(248,113,113,0.7)}
-/* 選択中の達成基準メモ */
+/* 選択中の達成基準メモ（スケール用） */
 .habit-criteria{font-size:11px;color:var(--text-muted);line-height:1.55;padding:5px 8px;background:rgba(255,255,255,0.04);border-radius:5px;width:100%;display:none}
 .habit-criteria.visible{display:block}
+/* できた/できなかった（バイナリ 2択） */
+.habit-binary{display:flex;gap:8px;width:100%}
+.hb-btn{flex:1;height:44px;border-radius:9px;border:1px solid var(--border);background:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-jp);transition:all .15s;-webkit-tap-highlight-color:transparent;letter-spacing:.01em}
+.hb-yes{color:rgba(74,222,128,0.7);border-color:rgba(74,222,128,0.2);background:rgba(74,222,128,0.05)}
+.hb-yes.sel{background:rgba(74,222,128,0.22);border-color:var(--green);color:var(--green)}
+.hb-no{color:rgba(248,113,113,0.7);border-color:rgba(248,113,113,0.2);background:rgba(248,113,113,0.05)}
+.hb-no.sel{background:rgba(248,113,113,0.2);border-color:var(--red);color:var(--red)}
+.hb-btn:active{transform:scale(.97)}
+/* 定義ヒント（バイナリ項目に常時表示） */
+.habit-def-hint{font-size:10.5px;color:var(--text-dim);line-height:1.5;padding:3px 2px;width:100%}
 /* 強制チェック習慣オーバーレイ */
 .habit-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,0.96);z-index:510;overflow-y:auto;padding:20px 16px 40px;flex-direction:column}
 .habit-overlay.visible{display:flex}
@@ -1727,84 +1737,67 @@ function getDailyMotivation() {
 // =========================================================
 // ライフスタイル振り返りシートの全項目（24項目）
 // 評価: 5=100%完璧, 4=80%良好, 3=50%普通, 2=20%低, 1=0%取組なし
+// type:'binary' = できた(2)/できなかった(1)  type:'scale' = 5段階(5〜1)
 const HABITS = [
-  // 1. 睡眠・生活リズム
-  { id:'early_rise',  label:'早寝早起きする',               cat:'🌙 睡眠・生活リズム',
-    def:'毎日決めた時間に起床・就寝している', 
-    criteria:{5:'毎日決めた時間に起床・就寝できている',4:'ほぼ決めた時間に起床・就寝できている',3:'1時間以内のズレが多い',2:'2時間以上ズレることがほとんど',1:'全くできていない'} },
-  { id:'sleep_6h',    label:'十分な睡眠時間をとる（6h以上）', cat:'🌙 睡眠・生活リズム',
-    def:'毎日6時間以上（推奨8時間以上）確保している',
-    criteria:{5:'毎日6h以上確保できている',4:'ほぼ毎日確保できている',3:'週に2〜3回は確保できている',2:'週に1〜2回しか確保できていない',1:'全くできていない'} },
-  { id:'bath',        label:'毎日湯船に入る',               cat:'🌙 睡眠・生活リズム',
-    def:'39〜40℃の湯船に10〜15分、肩までつかる',
-    criteria:{5:'毎日39〜40℃・10〜15分入浴している',4:'ほぼ毎日入浴できている',3:'週に3〜4日入浴できている',2:'週に1〜2日しか入浴できていない',1:'全くできていない'} },
-  { id:'no_late_eat', label:'夕食・飲酒を就寝2h以上前に終える', cat:'🌙 睡眠・生活リズム',
-    def:'毎日の夕食・飲酒を就寝2時間以上前に終えている',
-    criteria:{5:'毎日就寝2h前に終えられている',4:'ほぼ毎日守れている',3:'半分程度守れている',2:'あまり守れていない',1:'全く守れていない'} },
-  // 2. 食事・ヘルスケア
-  { id:'low_sugar',   label:'糖質・砂糖の摂取を控える',     cat:'🥗 食事・ヘルスケア',
-    def:'食事の半分以上で白米/パンを玄米/野菜に置き換え',
-    criteria:{5:'ほぼ毎食ベジタブルファーストを実践',4:'8割の食事で実践できている',3:'半分の食事で実践できている',2:'意識はしているが実践できていない',1:'全くできていない'} },
-  { id:'no_fried',    label:'揚げ物の摂取を控える（週1以下）', cat:'🥗 食事・ヘルスケア',
-    def:'揚げ物を週1回以下に抑えている',
-    criteria:{5:'週に一度も食べていない',4:'週1回以内に収まっている',3:'週2〜3回程度',2:'週4回以上食べている',1:'ほぼ毎日食べている'} },
-  { id:'weigh',       label:'毎朝体重を測って記録する',     cat:'🥗 食事・ヘルスケア',
-    def:'毎朝同じ時間に体重を測定している',
-    criteria:{5:'毎朝欠かさず測定・記録している',4:'週5〜6日測定している',3:'週3〜4日測定している',2:'週1〜2日しか測定していない',1:'全くできていない'} },
-  { id:'floss',       label:'毎晩デンタルフロスをする',     cat:'🥗 食事・ヘルスケア',
-    def:'毎晩歯みがき後にデンタルフロスをしている',
-    criteria:{5:'毎晩欠かさずできている',4:'週5〜6日できている',3:'週3〜4日できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
-  { id:'skincare',    label:'保湿して日焼け止めを塗る',     cat:'🥗 食事・ヘルスケア',
-    def:'入浴後1分以内の保湿と毎朝の日焼け止めを徹底',
-    criteria:{5:'毎日入浴後保湿・朝日焼け止め完璧',4:'ほぼ毎日できている',3:'保湿か日焼け止めどちらかはできている',2:'どちらかしかできていない',1:'全くできていない'} },
-  // 3. 運動・姿勢
-  { id:'exercise',    label:'毎日20分以上の軽い運動をする',  cat:'💪 運動・姿勢',
-    def:'毎日20分以上の軽い運動（会話ができる強度）',
-    criteria:{5:'毎日20分以上の運動ができている',4:'週5〜6日できている',3:'週3〜4日できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
-  { id:'gym',         label:'週1回以上の筋トレをする',       cat:'💪 運動・姿勢',
-    def:'週に1回以上、主要部位（胸・背中・下半身）のトレーニング',
-    criteria:{5:'週2回以上トレーニングできている',4:'週1回できている',3:'隔週1回程度できている',2:'月に1回程度しかできていない',1:'全くできていない'} },
-  { id:'posture',     label:'仕事中は良い姿勢を保つ',        cat:'💪 運動・姿勢',
-    def:'仙骨・肩甲骨・後頭部の3点が壁に触れるような姿勢',
-    criteria:{5:'終日意識できている',4:'8割の時間で保てている',3:'半分程度の時間で保てている',2:'意識はするが保てていない',1:'全く意識できていない'} },
-  // 4. 整理整頓・習慣管理
-  { id:'tidy_room',   label:'部屋を常に整理整頓・清潔にする', cat:'🧹 習慣管理',
-    def:'誰が見ても清潔な状態をキープしている',
-    criteria:{5:'常に誰が見ても清潔な状態',4:'ほぼ清潔な状態を保てている',3:'まあまあ整頓されている',2:'散らかっていることが多い',1:'全く整頓できていない'} },
-  { id:'no_shorts',   label:'隙間時間にゴシップ・ショート動画を見ない', cat:'🧹 習慣管理',
-    def:'隙間時間にLINEニュース・Xのおすすめ・ショート動画を閲覧しない',
-    criteria:{5:'一切見ていない',4:'ほとんど見ていない',3:'意識しているが見てしまうことがある',2:'よく見てしまう',1:'習慣的に見てしまっている'} },
-  { id:'no_gacha',    label:'中毒性があるものへの課金をやめる', cat:'🧹 習慣管理',
-    def:'ギャンブルやソーシャルゲーム等に習慣的なお金を使わない',
-    criteria:{5:'全くしていない',4:'ほぼしていない',3:'たまにしてしまう',2:'定期的にしてしまう',1:'習慣的にしてしまっている'} },
-  { id:'no_vain_sns', label:'承認欲求のためのSNS投稿をしない', cat:'🧹 習慣管理',
-    def:'発信目的を明確にし、有益な情報のみを投稿している',
-    criteria:{5:'目的を明確にした投稿のみしている',4:'ほぼ目的のある投稿のみ',3:'たまに承認欲求の投稿をしてしまう',2:'よく承認欲求の投稿をしてしまう',1:'ほぼ全て承認欲求目的'} },
-  // 5. 仕事術・対人関係
-  { id:'two_min',     label:'2分以内に終わることはすぐにやる', cat:'📝 仕事術・対人',
-    def:'2分以内の小さなタスク（返信等）を後回しにしない',
-    criteria:{5:'全てすぐ実行できている',4:'ほぼすぐ実行できている',3:'半分程度すぐ実行できている',2:'後回しにすることが多い',1:'全くできていない'} },
-  { id:'morning_act', label:'朝活の時間を30分以上つくる',   cat:'📝 仕事術・対人',
-    def:'始業前に30分以上の自己研鑽（読書・運動等）の時間をつくる',
-    criteria:{5:'毎日30分以上確保できている',4:'週5〜6日確保できている',3:'週3〜4日確保できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
-  { id:'good_new',    label:'毎日Good & Newを書き出す',     cat:'📝 仕事術・対人',
-    def:'24時間以内の「良かったこと・新しい発見」を記録または話す',
-    criteria:{5:'毎日欠かさず記録している',4:'週5〜6日記録している',3:'週3〜4日記録している',2:'週1〜2日しか記録していない',1:'全くできていない'} },
-  { id:'grooming',    label:'完璧なほど身だしなみを整える',  cat:'📝 仕事術・対人',
-    def:'髪・体臭・鼻毛・眉・服装・口臭・靴のすべてが整っている',
-    criteria:{5:'全ての項目が完璧に整っている',4:'ほぼ全て整っている',3:'大半は整っているが漏れがある',2:'半分程度しか整っていない',1:'全く整っていない'} },
-  { id:'deep_listen', label:'身近な人の話を集中して聞く',   cat:'📝 仕事術・対人',
-    def:'ながら聞きをせず、相手の目を見て質問を交えながら聞く',
-    criteria:{5:'常に集中して丁寧に聴けている',4:'ほぼ集中して聴けている',3:'半分程度は集中して聴けている',2:'ながら聞きをしてしまうことが多い',1:'全くできていない'} },
-  { id:'compliment',  label:'人の良いところを見つけて伝える', cat:'📝 仕事術・対人',
-    def:'他者の姿勢や行動に対し、肯定的な意見を伝えている',
-    criteria:{5:'毎日誰かの良さを見つけて伝えられている',4:'よく伝えられている',3:'たまに伝えられている',2:'あまり伝えられていない',1:'全くできていない'} },
-  { id:'smile_greet', label:'笑顔で元気にあいさつする',     cat:'📝 仕事術・対人',
-    def:'相手の顔を見て口角を上げて元気にあいさつする',
-    criteria:{5:'常に笑顔でできている',4:'ほぼできている',3:'半分程度できている',2:'あまりできていない',1:'全くできていない'} },
-  { id:'nuance',      label:'余白のある伝え方をする',        cat:'📝 仕事術・対人',
-    def:'いかなる場面でも断定を避け、余白のある伝え方をしている',
-    criteria:{5:'常にできている',4:'ほぼできている',3:'半分程度できている',2:'断定してしまうことが多い',1:'全くできていない'} },
+  // ── 睡眠・生活リズム ── (binary)
+  { id:'early_rise',  type:'binary', label:'起床・就寝時刻を守れた',          cat:'🌙 睡眠・生活リズム',
+    def:'自分で決めた時間に起き、決めた時間に就寝できているか' },
+  { id:'sleep_6h',    type:'binary', label:'6時間以上の睡眠が取れた',         cat:'🌙 睡眠・生活リズム',
+    def:'推奨は8時間。最低ラインは6時間の確保' },
+  { id:'bath',        type:'binary', label:'湯船に入った',                    cat:'🌙 睡眠・生活リズム',
+    def:'39〜40℃の湯船に10〜15分、肩までつかる' },
+  { id:'no_late_eat', type:'binary', label:'就寝2時間前までに食事を終えた',   cat:'🌙 睡眠・生活リズム',
+    def:'消化活動による睡眠の質低下を防ぐため、夕食・飲酒を就寝2h前に終える' },
+  // ── 食事・ヘルスケア ──
+  { id:'low_sugar',   type:'scale',  label:'糖質・砂糖の摂取を控えた',        cat:'🥗 食事・ヘルスケア',
+    def:'食事の半分以上で白米/パンを野菜に置き換え、ベジタブルファーストを実践',
+    criteria:{5:'ほぼ全食でベジタブルファーストを実践',4:'8割の食事で実践できた',3:'半分程度実践できた',2:'意識したが実践できなかった',1:'全く意識しなかった'} },
+  { id:'no_fried',    type:'binary', label:'揚げ物を食べなかった',             cat:'🥗 食事・ヘルスケア',
+    def:'老化物質（AGEs）抑制のため、揚げ物は週1回以下が目標' },
+  { id:'weigh',       type:'binary', label:'体重を測って記録した',             cat:'🥗 食事・ヘルスケア',
+    def:'毎朝同じ条件で測定し、数値の変化を把握する' },
+  { id:'floss',       type:'binary', label:'デンタルフロスをした',             cat:'🥗 食事・ヘルスケア',
+    def:'毎晩歯みがき後にデンタルフロスで歯垢を除去する' },
+  { id:'skincare',    type:'binary', label:'保湿・日焼け止めをした',           cat:'🥗 食事・ヘルスケア',
+    def:'入浴後1分以内の保湿 + 毎朝の日焼け止め（光老化防止）' },
+  // ── 運動・姿勢 ──
+  { id:'exercise',    type:'binary', label:'20分以上の軽い運動をした',         cat:'💪 運動・姿勢',
+    def:'会話できる程度の強度（ウォーキング・自重トレなど）で20分以上' },
+  { id:'gym',         type:'binary', label:'筋トレをした',                    cat:'💪 運動・姿勢',
+    def:'胸・背中・下半身の主要部位を週1回以上トレーニング（今日が該当日なら）' },
+  { id:'posture',     type:'scale',  label:'仕事中に良い姿勢を保てた',         cat:'💪 運動・姿勢',
+    def:'仙骨・肩甲骨・後頭部の3点が壁に触れるような姿勢を意識する',
+    criteria:{5:'終日ほぼ完璧に意識できた',4:'8割の時間で保てた',3:'半分程度保てた',2:'意識したが保てなかった',1:'全く意識しなかった'} },
+  // ── 習慣管理 ──
+  { id:'tidy_room',   type:'scale',  label:'部屋が整理整頓・清潔な状態だった', cat:'🧹 習慣管理',
+    def:'誰が見ても清潔な状態。出しっぱなしゼロ・ケーブル整理済みの状態',
+    criteria:{5:'完璧に清潔・整頓されていた',4:'ほぼ清潔な状態だった',3:'まあまあ整頓されていた',2:'散らかっている箇所があった',1:'全く整頓できていなかった'} },
+  { id:'no_shorts',   type:'binary', label:'ゴシップ・ショート動画を見なかった', cat:'🧹 習慣管理',
+    def:'隙間時間にLINEニュース・Xのおすすめ・ショート動画を開かなかった' },
+  { id:'no_gacha',    type:'binary', label:'中毒性課金をしなかった',           cat:'🧹 習慣管理',
+    def:'ギャンブルやソーシャルゲーム等に習慣的なお金を使わなかった' },
+  { id:'no_vain_sns', type:'binary', label:'承認欲求目的のSNS投稿をしなかった', cat:'🧹 習慣管理',
+    def:'発信目的が明確で有益な情報のみを投稿した（目的のない投稿はしなかった）' },
+  // ── 仕事術・対人関係 ──
+  { id:'two_min',     type:'scale',  label:'2分以内の用事をすぐにやれた',      cat:'📝 仕事術・対人',
+    def:'返信・小タスクなど2分で終わることを先延ばしにしなかった',
+    criteria:{5:'全てその場で実行できた',4:'ほぼすぐ実行できた',3:'半分程度すぐ実行できた',2:'後回しにすることが多かった',1:'全くできなかった'} },
+  { id:'morning_act', type:'binary', label:'朝活を30分以上した',               cat:'📝 仕事術・対人',
+    def:'始業前に読書・運動など自己研鑽の時間を30分以上確保した' },
+  { id:'good_new',    type:'binary', label:'Good & Newを書いた（または話した）', cat:'📝 仕事術・対人',
+    def:'今日の「良かったこと・新しい発見」を記録or誰かに話した' },
+  { id:'grooming',    type:'binary', label:'身だしなみを完璧に整えた',         cat:'📝 仕事術・対人',
+    def:'髪・体臭・鼻毛・眉・服装・口臭・靴のすべてが整っている' },
+  { id:'deep_listen', type:'scale',  label:'身近な人の話を集中して聴けた',     cat:'📝 仕事術・対人',
+    def:'ながら聞きをせず、相手の目を見て質問を交えながら聴いた',
+    criteria:{5:'常に集中して丁寧に聴けた',4:'ほぼ集中して聴けた',3:'半分程度は集中できた',2:'ながら聞きをしてしまった',1:'全く集中できなかった'} },
+  { id:'compliment',  type:'binary', label:'人の良いところを見つけて伝えた',   cat:'📝 仕事術・対人',
+    def:'他者の姿勢や行動に対し、肯定的な意見を直接伝えた' },
+  { id:'smile_greet', type:'binary', label:'笑顔で元気にあいさつした',         cat:'📝 仕事術・対人',
+    def:'相手の顔を見て口角を上げ、声をワントーン上げてあいさつした' },
+  { id:'nuance',      type:'scale',  label:'余白のある伝え方ができた',         cat:'📝 仕事術・対人',
+    def:'断定を避け「こういう可能性も」という余白のある表現を意識した',
+    criteria:{5:'全ての場面で実践できた',4:'ほぼできた',3:'半分程度できた',2:'断定してしまうことが多かった',1:'全く意識できなかった'} },
 ];
 const STORAGE_HABITS = 'sensei_habits';
 let habitDate = dateToString(new Date()); // 習慣チェックの表示日
@@ -1824,13 +1817,26 @@ function setHabitRating(habitId, val, date) {
 }
 
 // 評価値→ラベル変換 (5=100%完璧〜1=✕取組なし)
+// scale: 5=100%, 4=80%, 3=50%, 2=20%, 1=0%
 const HABIT_LABELS = {5:'100%', 4:'80%', 3:'50%', 2:'20%', 1:'✕'};
+
+// スコア計算ヘルパー（binary/scale 共通）
+function calcHabitScore(dateData) {
+  const SCALE_PCT = {5:100, 4:80, 3:50, 2:20, 1:0};
+  const answered = HABITS.filter(h => (dateData[h.id]||0) > 0).length;
+  const total = HABITS.length;
+  const totalScore = HABITS.reduce((s, h) => {
+    const v = dateData[h.id] || 0;
+    if (v === 0) return s;
+    return s + (h.type === 'binary' ? (v === 2 ? 100 : 0) : (SCALE_PCT[v] ?? 0));
+  }, 0);
+  const avgPct = answered === 0 ? 0 : Math.round(totalScore / answered);
+  return { answered, total, avgPct };
+}
 
 function renderHabitItems(container, dateKey, onChange) {
   const data = loadHabits();
   const dateData = data[dateKey] || {};
-  const answered = HABITS.filter(h => (dateData[h.id]||0) > 0).length;
-  const total = HABITS.length;
 
   // カテゴリ別
   const cats = [...new Set(HABITS.map(h => h.cat))];
@@ -1839,51 +1845,63 @@ function renderHabitItems(container, dateKey, onChange) {
     html += `<div class="habit-section-label">${cat}</div>`;
     HABITS.filter(h => h.cat === cat).forEach(h => {
       const val = dateData[h.id] || 0;
-      const criteriaText = val > 0 ? escHtml(h.criteria?.[val] || '') : '';
-      html += `<div class="habit-item${val>0?' checked':''}">
-        <div class="habit-item-top">
-          <div class="habit-label">${escHtml(h.label)}</div>
-        </div>
-        <div class="habit-rating" data-habit="${h.id}">
-          ${[5,4,3,2,1].map(v=>`<button class="habit-star${val===v?' sel-'+v:''}" data-val="${v}">${HABIT_LABELS[v]}</button>`).join('')}
-        </div>
-        <div class="habit-criteria${val>0?' visible':''}" id="hc-${h.id}">${criteriaText}</div>
+      const checked = val > 0;
+      let ratingHtml = '';
+      if (h.type === 'binary') {
+        ratingHtml = `
+          <div class="habit-binary" data-habit="${h.id}">
+            <button class="hb-btn hb-yes${val===2?' sel':''}" data-val="2">できた ✓</button>
+            <button class="hb-btn hb-no${val===1?' sel':''}" data-val="1">できなかった ✗</button>
+          </div>
+          <div class="habit-def-hint">${escHtml(h.def)}</div>`;
+      } else {
+        const criteriaText = val > 0 ? escHtml(h.criteria?.[val] || '') : '';
+        ratingHtml = `
+          <div class="habit-rating habit-scale" data-habit="${h.id}">
+            ${[5,4,3,2,1].map(v=>`<button class="habit-star${val===v?' sel-'+v:''}" data-val="${v}">${HABIT_LABELS[v]}</button>`).join('')}
+          </div>
+          <div class="habit-criteria${checked?' visible':''}" id="hc-${h.id}">${criteriaText}</div>`;
+      }
+      html += `<div class="habit-item${checked?' checked':''}">
+        <div class="habit-item-top"><div class="habit-label">${escHtml(h.label)}</div></div>
+        ${ratingHtml}
       </div>`;
     });
   });
   container.innerHTML = html;
-  container.querySelectorAll('.habit-rating[data-habit]').forEach(row => {
+
+  // イベントリスナー（binary: .habit-binary、scale: .habit-scale）
+  container.querySelectorAll('[data-habit]').forEach(row => {
     const habitId = row.dataset.habit;
-    const habit = HABITS.find(h=>h.id===habitId);
-    row.querySelectorAll('.habit-star').forEach(btn => {
+    const habit = HABITS.find(h => h.id === habitId);
+    row.querySelectorAll('[data-val]').forEach(btn => {
       btn.addEventListener('click', () => {
         const v = parseInt(btn.dataset.val);
         setHabitRating(habitId, v, dateKey);
-        // 基準テキスト即時更新
-        const criteriaEl = container.querySelector(`#hc-${habitId}`);
-        if(criteriaEl && habit?.criteria) {
-          const newData = loadHabits()[dateKey]||{};
-          const newVal = newData[habitId]||0;
-          criteriaEl.textContent = newVal>0 ? (habit.criteria[newVal]||'') : '';
-          criteriaEl.classList.toggle('visible', newVal>0);
+        // scale: criteria テキスト更新
+        if (habit?.type !== 'binary') {
+          const criteriaEl = container.querySelector(`#hc-${habitId}`);
+          if (criteriaEl) {
+            const newVal = (loadHabits()[dateKey]||{})[habitId]||0;
+            criteriaEl.textContent = newVal > 0 ? (habit.criteria?.[newVal]||'') : '';
+            criteriaEl.classList.toggle('visible', newVal > 0);
+          }
         }
+        // 親コールバック or タブ再描画
         if (onChange) onChange();
         else renderHabitTab();
       });
     });
   });
+  const {answered, total} = calcHabitScore(dateData);
   return {answered, total};
 }
 
 function renderHabitTab() {
   const d = stringToDate(habitDate);
   const dateLabel = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
-  const data = loadHabits();
-  const dateData = data[habitDate] || {};
-  const answered = HABITS.filter(h=>(dateData[h.id]||0)>0).length;
-  const total = HABITS.length;
-  // 平均スコア = (合計スコア / (total*5)) * 100 — 未回答は0扱い
-  const avgPct = Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100);
+  const dateData = (loadHabits()[habitDate]) || {};
+  const {answered, total, avgPct} = calcHabitScore(dateData);
 
   const panel = document.getElementById('mob-habit');
   const header = `
@@ -1947,31 +1965,25 @@ function initGreeting() {
 
 function showHabitCheckOverlay(today) {
   const overlay = document.getElementById('habit-overlay');
-  const d = new Date();
-  const dateStr = dateToString(d);
-  const data = loadHabits();
-  const dateData = data[dateStr] || {};
-  let answered = HABITS.filter(h=>(dateData[h.id]||0)>0).length;
+  const dateStr = dateToString(new Date());
 
   function refresh() {
     const d2 = loadHabits()[dateStr] || {};
-    answered = HABITS.filter(h=>(d2[h.id]||0)>0).length;
-    const pct = Math.round(answered/HABITS.length*100);
+    const {answered, avgPct} = calcHabitScore(d2);
     const fill = overlay.querySelector('.habit-overlay-fill');
     const goBtn = overlay.querySelector('.habit-overlay-go');
-    if(fill) fill.style.width = pct+'%';
-    if(goBtn) goBtn.textContent = `今日を始める（${answered}/${HABITS.length}）→`;
-    // items re-render handled by renderHabitItems internally
+    if(fill) fill.style.width = avgPct+'%';
+    if(goBtn) goBtn.textContent = `今日を始める（${answered}/${HABITS.length} 回答済み）→`;
   }
 
   overlay.innerHTML = `
     <div class="habit-overlay-head">
       <div class="habit-overlay-title">今日の習慣チェック</div>
-      <div class="habit-overlay-sub">5段階で評価してください（1=全くできず、5=完璧）</div>
+      <div class="habit-overlay-sub">できた / できなかった、または5段階で評価してください</div>
       <div class="habit-overlay-progress"><div class="habit-overlay-fill" style="width:0%"></div></div>
     </div>
     <div id="habit-overlay-items"></div>
-    <button class="habit-overlay-go">今日を始める（0/${HABITS.length}）→</button>
+    <button class="habit-overlay-go">今日を始める（0/${HABITS.length} 回答済み）→</button>
     <button class="habit-overlay-skip">スキップして今日のカレンダーを見る</button>`;
   overlay.classList.add('visible');
 
