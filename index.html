@@ -194,13 +194,15 @@ body.view-month .cal-scroll{display:none}
 .month-cell.is-today{border-color:var(--cyan);background:rgba(0,200,224,0.05)}
 .month-cell.is-today .month-day-num{color:#000;background:var(--cyan);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
 .month-day-num{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500;line-height:1;margin-bottom:3px}
-.month-evt-dot{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 3px;border-radius:2px;line-height:1.4}
-.month-evt-dot.lesson{background:rgba(74,222,128,0.15);color:var(--green)}
-.month-evt-dot.club{background:rgba(0,200,224,0.15);color:var(--cyan)}
-.month-evt-dot.event{background:rgba(248,113,113,0.15);color:var(--red)}
-.month-evt-dot.private{background:rgba(167,139,250,0.15);color:var(--purple)}
-.month-evt-dot.other{background:rgba(107,114,128,0.15);color:var(--gray)}
-.month-evt-more{font-size:9px;color:var(--text-dim);padding-left:3px}
+/* カテゴリ別ドットライン */
+.month-dots-row{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.month-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.month-dot.lesson{background:var(--green)}
+.month-dot.club{background:var(--cyan)}
+.month-dot.event{background:var(--red)}
+.month-dot.private{background:var(--purple)}
+.month-dot.other{background:var(--gray)}
+.month-evt-more{font-size:9px;color:var(--text-dim);padding-left:2px;align-self:center}
 .month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px;gap:8px}
 .month-nav-title{font-family:var(--font-mono);font-size:15px;font-weight:500;color:var(--text);letter-spacing:.04em}
 
@@ -230,8 +232,8 @@ body.view-month .cal-scroll{display:none}
   /* ─── アプリ本体 ─── */
   .app-body{height:calc(100vh - var(--header-h));overflow:hidden}
   /* ─── カレンダー（週間ストリップ付き） ─── */
-  .mob-week-strip.visible{display:flex}
-  .cal-scroll{height:calc(100% - 62px)} /* strip height を引く */
+  .mob-week-strip.visible{display:flex;flex-shrink:0}
+  .cal-scroll{flex:1;min-height:0} /* strip分はflexで自動計算 */
   .day-col{display:none} .day-col.mob-show{display:block}
   .day-header-row{display:none} /* strip に置換 */
   .dh-gutter{width:var(--gutter-w)}
@@ -325,15 +327,23 @@ body.view-month .cal-scroll{display:none}
 .habit-date-label{font-family:var(--font-mono);font-size:11px;color:var(--text-muted)}
 .habit-date-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
 .habit-date-btn:active{border-color:var(--cyan);color:var(--cyan)}
-/* 5段階評価 */
+/* 5段階評価 (5=100%完璧〜1=✕取組なし) */
 .habit-item{flex-direction:column;align-items:flex-start;gap:8px}
 .habit-item-top{display:flex;align-items:center;gap:10px;width:100%}
-.habit-rating{display:flex;gap:5px;width:100%}
-.habit-star{flex:1;height:34px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-mono);transition:all .12s;-webkit-tap-highlight-color:transparent}
+.habit-rating{display:flex;gap:4px;width:100%}
+.habit-star{flex:1;height:36px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-jp);transition:all .12s;-webkit-tap-highlight-color:transparent;line-height:1;padding:0 2px;letter-spacing:-.01em}
 .habit-star:active{transform:scale(.95)}
-.habit-star.sel-1,.habit-star.sel-2{background:rgba(248,113,113,0.18);border-color:rgba(248,113,113,0.45);color:var(--red)}
-.habit-star.sel-3{background:rgba(251,191,36,0.18);border-color:rgba(251,191,36,0.4);color:var(--amber)}
-.habit-star.sel-4,.habit-star.sel-5{background:rgba(0,200,224,0.18);border-color:rgba(0,200,224,0.45);color:var(--cyan)}
+/* 5=100%, 4=80% → 青緑 */
+.habit-star.sel-5{background:rgba(74,222,128,0.2);border-color:var(--green);color:var(--green)}
+.habit-star.sel-4{background:rgba(0,200,224,0.18);border-color:var(--cyan);color:var(--cyan)}
+/* 3=50% → 黄 */
+.habit-star.sel-3{background:rgba(251,191,36,0.18);border-color:var(--amber);color:var(--amber)}
+/* 2=20%, 1=✕ → 赤 */
+.habit-star.sel-2{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.5);color:var(--red)}
+.habit-star.sel-1{background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.3);color:rgba(248,113,113,0.7)}
+/* 選択中の達成基準メモ */
+.habit-criteria{font-size:11px;color:var(--text-muted);line-height:1.55;padding:5px 8px;background:rgba(255,255,255,0.04);border-radius:5px;width:100%;display:none}
+.habit-criteria.visible{display:block}
 /* 強制チェック習慣オーバーレイ */
 .habit-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,0.96);z-index:510;overflow-y:auto;padding:20px 16px 40px;flex-direction:column}
 .habit-overlay.visible{display:flex}
@@ -710,7 +720,10 @@ function saveDayPatterns(obj) {
 let userEvents = loadUserEvents();
 let dayPatterns = loadDayPatterns();
 let weekOffset = 0, currentView = 'week', editingEventId = null;
-let selectedDay = new Date().getDay(); // 0=日〜6=土、今日の曜日インデックス
+// 0=日, 1=月, ..., 6=土。週末は月曜（1）にデフォルト（土日はスクールイベントなし）
+const _todayDow = new Date().getDay();
+let selectedDay = (_todayDow === 0 || _todayDow === 6) ? 1 : _todayDow;
+let mobSelectedDay = selectedDay;
 let activeFilter = null;
 
 function getDayPattern(dateStr) { return dayPatterns[dateStr] || 'std'; }
@@ -1590,13 +1603,22 @@ function renderMonthGrid(container, year, month, onDayClick) {
     cellEl.className = 'month-cell' + (cell.otherMonth?' other-month':'') + (dateStr===todayStr?' is-today':'');
     const numEl = document.createElement('div'); numEl.className='month-day-num'; numEl.textContent=cell.d.getDate();
     cellEl.appendChild(numEl);
-    const shown = evts.slice(0,3);
-    shown.forEach(ev=>{
-      const dot=document.createElement('div'); dot.className=`month-evt-dot ${ev.cat||'other'}`;
-      dot.textContent = ev.title || (ev.period?ev.period+' '+ev.subject:'');
-      cellEl.appendChild(dot);
-    });
-    if(evts.length>3){const m=document.createElement('div');m.className='month-evt-more';m.textContent=`+${evts.length-3}件`;cellEl.appendChild(m);}
+    // カテゴリ別にドットをまとめて表示
+    if(evts.length > 0){
+      const dotsRow = document.createElement('div');
+      dotsRow.className = 'month-dots-row';
+      const MAX_DOTS = 8;
+      evts.slice(0, MAX_DOTS).forEach(ev=>{
+        const dot=document.createElement('div');
+        dot.className=`month-dot ${ev.cat||'other'}`;
+        dot.title = ev.title || ev.subject || '';
+        dotsRow.appendChild(dot);
+      });
+      if(evts.length > MAX_DOTS){
+        const m=document.createElement('span');m.className='month-evt-more';m.textContent=`+${evts.length-MAX_DOTS}`;dotsRow.appendChild(m);
+      }
+      cellEl.appendChild(dotsRow);
+    }
     cellEl.addEventListener('click',()=>onDayClick(dateStr));
     grid.appendChild(cellEl);
   });
@@ -1631,11 +1653,11 @@ function buildMobWeekStrip() {
       <div class="mob-day-dots">${cats.map(c=>`<div class="mob-day-dot" style="background:${CAT_COLOR[c]||'#6b7280'}"></div>`).join('')}</div>`;
     cell.addEventListener('click',()=>{
       mobSelectedDay = d.getDay();
+      selectedDay = mobSelectedDay; // 同期
       // update mob-show
       document.querySelectorAll('.day-col').forEach(col=>{
         const colDate = col.dataset.date;
-        if(colDate===dateStr){ col.classList.add('mob-show'); }
-        else { col.classList.remove('mob-show'); }
+        col.classList.toggle('mob-show', colDate===dateStr);
       });
       buildMobWeekStrip();
     });
@@ -1651,49 +1673,139 @@ function buildMobWeekStrip() {
 // =========================================================
 // 今日の一言（motivational messages from life philosophy）
 // =========================================================
-const MOTIVATIONAL_MSGS = [
-  { msg:'変わり続けることで、変わらないものを守る。', sub:'今日も、その途中にいる。' },
-  { msg:'通奏低音として、今日も静かに鳴り続けよう。', sub:'存在すること自体が、誰かの足場になる。' },
-  { msg:'余韻が残る言葉を、一つだけ届けてみよう。', sub:'鳴り終わった後も、響きは残る。' },
-  { msg:'変化の途中にある美しさを、今日も見つけよう。', sub:'完成より、移行の瞬間に美がある。' },
-  { msg:'間（ま）は欠如じゃない。充満だ。', sub:'沈黙している間も、考えている。それでいい。' },
-  { msg:'生徒から学べることが、今日も必ずある。', sub:'気づいたら自分の方が変わっていた。それでいい。' },
-  { msg:'8割で出す。完璧を待たない。', sub:'まず届けることで、初めて完成する。' },
-  { msg:'足場を作ることが、人が立てる場所を生む。', sub:'今日の丁寧さが、明日の誰かを支える。' },
-  { msg:'「聴く」——耳ではなく、全身で。', sub:'波長が合っているか、今日もリアルタイムで確認しよう。' },
-  { msg:'教育を足場に、文学と音楽で世界に名を刻む。', sub:'それが今日の自分のミッションだ。' },
-  { msg:'受け取ってもらって、初めて完成する。', sub:'今日も、届けることを諦めない。' },
-  { msg:'今ここの音だけに、全身を預ける。', sub:'余計な雑念を手放せば、演奏は語り始める。' },
-  { msg:'今いる場所の責任を、まず誠実に果たす。', sub:'それが通奏低音として在り続けることだ。' },
-  { msg:'背景を読む。表面ではなく、心理的状態を先に。', sub:'「何を話すか」より「今の波長が合っているか」。' },
+// 曜日別 今日の一言（my-life-philosophy.md 完全準拠）
+// msg: 今日守ってほしいこと / sub: 補足 / q: 今日の問い / reflect: 夕方の振り返り観点
+const DAILY_MOMENTS = [
+  { // 日曜 (0) — 回復と創造の日
+    msg: '「変わり続けることで、変わらないものを守る。」今日は何を変え、何を守るか？',
+    sub: '没入することで回復する。サウナ、音楽、読書、美術館——好きなことを高密度に詰め込もう。',
+    q:   '今日という一日が終わったとき、どんな「余韻」を手元に残したいか？',
+    reflect: '今日の休日で、自分の通奏低音はどの音を鳴らし続けたか？'
+  },
+  { // 月曜 (1) — 新しい週の始まり
+    msg: '通奏低音として、今週も静かに鳴り続けよう。',
+    sub: '存在すること自体が、誰かの足場になる。生徒の「変化の途中」に気づける一週間に。',
+    q:   '今週の教室で、生徒の通奏低音に耳を傾ける準備ができているか？',
+    reflect: '今日、生徒の心理的状態を「何を話すか」より先に読もうとしたか？'
+  },
+  { // 火曜 (2) — 丁寧に届ける日
+    msg: '余韻が残る言葉を、今日一つだけ届けよう。',
+    sub: '鳴り終わった後も、響きは残る。「間（ま）」は欠如でなく充満。沈黙を恐れない。',
+    q:   '今日の授業で、どの瞬間に「余白」を意図的に作れるか？',
+    reflect: '今日、自分の言葉は誰かの心に余韻を残せたか？'
+  },
+  { // 水曜 (3) — 変化を見つける日
+    msg: '変化の途中にある美しさを、今日も見つけよう。',
+    sub: '完成より、移行の瞬間に美がある。生徒も、自分も、「途中」にいていい。',
+    q:   '今日、誰かの「変わろうとしている瞬間」に立ち会えるか？',
+    reflect: '今日、自分自身はどんな変化の途中にいたか？'
+  },
+  { // 木曜 (4) — 構造と誠実さの日
+    msg: '今いる場所の責任を、まず誠実に果たそう。',
+    sub: '現在関わっている人への責任を、未来の大きな利益より優先する。8割で出す勇気を持つ。',
+    q:   '今日、構造を整えてから動いているか？完璧を待って動けない場面はないか？',
+    reflect: '今日、8割で出す選択をした場面はあったか？誰かへの責任を果たせたか？'
+  },
+  { // 金曜 (5) — 波長とつながりの日
+    msg: '「聴く」——耳ではなく、全身で聴こう。',
+    sub: '身近な人の話を集中して聴く。「何を話すか」より「今この人の波長に合っているか」を先に。',
+    q:   '今日、最も深く聴ける場面はどこか？スマホを置いて、相手の目を見る準備ができているか？',
+    reflect: '今日、最も深く聴けた瞬間はいつか？逆に、聴けなかった瞬間は何が邪魔をしたか？'
+  },
+  { // 土曜 (6) — 音楽と自己表現の日
+    msg: '受け取ってもらって、初めて完成する。',
+    sub: '演奏も、授業も、言葉も——届いて初めて完成する。流れがつながっているか、今日も確認しよう。',
+    q:   '今日の活動で、何を「受け取ってもらう」ことを目指すか？',
+    reflect: '今日、自分の通奏低音は聴こえていたか？メロディは届いたか？'
+  },
 ];
 function getDailyMotivation() {
-  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  return MOTIVATIONAL_MSGS[dayOfYear % MOTIVATIONAL_MSGS.length];
+  return DAILY_MOMENTS[new Date().getDay()];
 }
 
 // =========================================================
 // 習慣チェック (my_lifestyle_review_sheet.md より)
 // =========================================================
+// ライフスタイル振り返りシートの全項目（24項目）
+// 評価: 5=100%完璧, 4=80%良好, 3=50%普通, 2=20%低, 1=0%取組なし
 const HABITS = [
-  // 睡眠・生活リズム
-  { id:'early_rise', label:'早寝早起き（決めた時間に起床・就寝）', cat:'🌙 睡眠・生活' },
-  { id:'sleep_6h',   label:'6時間以上の睡眠を確保する', cat:'🌙 睡眠・生活' },
-  { id:'bath',       label:'湯船に入る（39〜40℃・10〜15分）', cat:'🌙 睡眠・生活' },
-  // 食事・ヘルスケア
-  { id:'sunscreen',  label:'日焼け止め + 保湿（入浴後すぐ）', cat:'🥗 食事・ケア' },
-  { id:'floss',      label:'デンタルフロスをする', cat:'🥗 食事・ケア' },
-  { id:'low_sugar',  label:'糖質・揚げ物を控える', cat:'🥗 食事・ケア' },
-  // 運動・姿勢
-  { id:'exercise',   label:'20分以上の軽い運動（会話できる強度）', cat:'💪 運動・姿勢' },
-  { id:'posture',    label:'仕事中に良い姿勢を保つ', cat:'💪 運動・姿勢' },
-  // 整理整頓・習慣管理
-  { id:'tidy_room',  label:'部屋を整理整頓・清潔に保つ', cat:'🧹 習慣管理' },
-  { id:'no_shorts',  label:'ショート動画・ゴシップを見ない', cat:'🧹 習慣管理' },
-  // 仕事術・対人
-  { id:'good_new',   label:'Good & New を記録する（24h以内）', cat:'📝 仕事術' },
-  { id:'two_min',    label:'2分以内タスクはすぐ実行する', cat:'📝 仕事術' },
-  { id:'grooming',   label:'身だしなみを完璧に整える', cat:'📝 仕事術' },
+  // 1. 睡眠・生活リズム
+  { id:'early_rise',  label:'早寝早起きする',               cat:'🌙 睡眠・生活リズム',
+    def:'毎日決めた時間に起床・就寝している', 
+    criteria:{5:'毎日決めた時間に起床・就寝できている',4:'ほぼ決めた時間に起床・就寝できている',3:'1時間以内のズレが多い',2:'2時間以上ズレることがほとんど',1:'全くできていない'} },
+  { id:'sleep_6h',    label:'十分な睡眠時間をとる（6h以上）', cat:'🌙 睡眠・生活リズム',
+    def:'毎日6時間以上（推奨8時間以上）確保している',
+    criteria:{5:'毎日6h以上確保できている',4:'ほぼ毎日確保できている',3:'週に2〜3回は確保できている',2:'週に1〜2回しか確保できていない',1:'全くできていない'} },
+  { id:'bath',        label:'毎日湯船に入る',               cat:'🌙 睡眠・生活リズム',
+    def:'39〜40℃の湯船に10〜15分、肩までつかる',
+    criteria:{5:'毎日39〜40℃・10〜15分入浴している',4:'ほぼ毎日入浴できている',3:'週に3〜4日入浴できている',2:'週に1〜2日しか入浴できていない',1:'全くできていない'} },
+  { id:'no_late_eat', label:'夕食・飲酒を就寝2h以上前に終える', cat:'🌙 睡眠・生活リズム',
+    def:'毎日の夕食・飲酒を就寝2時間以上前に終えている',
+    criteria:{5:'毎日就寝2h前に終えられている',4:'ほぼ毎日守れている',3:'半分程度守れている',2:'あまり守れていない',1:'全く守れていない'} },
+  // 2. 食事・ヘルスケア
+  { id:'low_sugar',   label:'糖質・砂糖の摂取を控える',     cat:'🥗 食事・ヘルスケア',
+    def:'食事の半分以上で白米/パンを玄米/野菜に置き換え',
+    criteria:{5:'ほぼ毎食ベジタブルファーストを実践',4:'8割の食事で実践できている',3:'半分の食事で実践できている',2:'意識はしているが実践できていない',1:'全くできていない'} },
+  { id:'no_fried',    label:'揚げ物の摂取を控える（週1以下）', cat:'🥗 食事・ヘルスケア',
+    def:'揚げ物を週1回以下に抑えている',
+    criteria:{5:'週に一度も食べていない',4:'週1回以内に収まっている',3:'週2〜3回程度',2:'週4回以上食べている',1:'ほぼ毎日食べている'} },
+  { id:'weigh',       label:'毎朝体重を測って記録する',     cat:'🥗 食事・ヘルスケア',
+    def:'毎朝同じ時間に体重を測定している',
+    criteria:{5:'毎朝欠かさず測定・記録している',4:'週5〜6日測定している',3:'週3〜4日測定している',2:'週1〜2日しか測定していない',1:'全くできていない'} },
+  { id:'floss',       label:'毎晩デンタルフロスをする',     cat:'🥗 食事・ヘルスケア',
+    def:'毎晩歯みがき後にデンタルフロスをしている',
+    criteria:{5:'毎晩欠かさずできている',4:'週5〜6日できている',3:'週3〜4日できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
+  { id:'skincare',    label:'保湿して日焼け止めを塗る',     cat:'🥗 食事・ヘルスケア',
+    def:'入浴後1分以内の保湿と毎朝の日焼け止めを徹底',
+    criteria:{5:'毎日入浴後保湿・朝日焼け止め完璧',4:'ほぼ毎日できている',3:'保湿か日焼け止めどちらかはできている',2:'どちらかしかできていない',1:'全くできていない'} },
+  // 3. 運動・姿勢
+  { id:'exercise',    label:'毎日20分以上の軽い運動をする',  cat:'💪 運動・姿勢',
+    def:'毎日20分以上の軽い運動（会話ができる強度）',
+    criteria:{5:'毎日20分以上の運動ができている',4:'週5〜6日できている',3:'週3〜4日できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
+  { id:'gym',         label:'週1回以上の筋トレをする',       cat:'💪 運動・姿勢',
+    def:'週に1回以上、主要部位（胸・背中・下半身）のトレーニング',
+    criteria:{5:'週2回以上トレーニングできている',4:'週1回できている',3:'隔週1回程度できている',2:'月に1回程度しかできていない',1:'全くできていない'} },
+  { id:'posture',     label:'仕事中は良い姿勢を保つ',        cat:'💪 運動・姿勢',
+    def:'仙骨・肩甲骨・後頭部の3点が壁に触れるような姿勢',
+    criteria:{5:'終日意識できている',4:'8割の時間で保てている',3:'半分程度の時間で保てている',2:'意識はするが保てていない',1:'全く意識できていない'} },
+  // 4. 整理整頓・習慣管理
+  { id:'tidy_room',   label:'部屋を常に整理整頓・清潔にする', cat:'🧹 習慣管理',
+    def:'誰が見ても清潔な状態をキープしている',
+    criteria:{5:'常に誰が見ても清潔な状態',4:'ほぼ清潔な状態を保てている',3:'まあまあ整頓されている',2:'散らかっていることが多い',1:'全く整頓できていない'} },
+  { id:'no_shorts',   label:'隙間時間にゴシップ・ショート動画を見ない', cat:'🧹 習慣管理',
+    def:'隙間時間にLINEニュース・Xのおすすめ・ショート動画を閲覧しない',
+    criteria:{5:'一切見ていない',4:'ほとんど見ていない',3:'意識しているが見てしまうことがある',2:'よく見てしまう',1:'習慣的に見てしまっている'} },
+  { id:'no_gacha',    label:'中毒性があるものへの課金をやめる', cat:'🧹 習慣管理',
+    def:'ギャンブルやソーシャルゲーム等に習慣的なお金を使わない',
+    criteria:{5:'全くしていない',4:'ほぼしていない',3:'たまにしてしまう',2:'定期的にしてしまう',1:'習慣的にしてしまっている'} },
+  { id:'no_vain_sns', label:'承認欲求のためのSNS投稿をしない', cat:'🧹 習慣管理',
+    def:'発信目的を明確にし、有益な情報のみを投稿している',
+    criteria:{5:'目的を明確にした投稿のみしている',4:'ほぼ目的のある投稿のみ',3:'たまに承認欲求の投稿をしてしまう',2:'よく承認欲求の投稿をしてしまう',1:'ほぼ全て承認欲求目的'} },
+  // 5. 仕事術・対人関係
+  { id:'two_min',     label:'2分以内に終わることはすぐにやる', cat:'📝 仕事術・対人',
+    def:'2分以内の小さなタスク（返信等）を後回しにしない',
+    criteria:{5:'全てすぐ実行できている',4:'ほぼすぐ実行できている',3:'半分程度すぐ実行できている',2:'後回しにすることが多い',1:'全くできていない'} },
+  { id:'morning_act', label:'朝活の時間を30分以上つくる',   cat:'📝 仕事術・対人',
+    def:'始業前に30分以上の自己研鑽（読書・運動等）の時間をつくる',
+    criteria:{5:'毎日30分以上確保できている',4:'週5〜6日確保できている',3:'週3〜4日確保できている',2:'週1〜2日しかできていない',1:'全くできていない'} },
+  { id:'good_new',    label:'毎日Good & Newを書き出す',     cat:'📝 仕事術・対人',
+    def:'24時間以内の「良かったこと・新しい発見」を記録または話す',
+    criteria:{5:'毎日欠かさず記録している',4:'週5〜6日記録している',3:'週3〜4日記録している',2:'週1〜2日しか記録していない',1:'全くできていない'} },
+  { id:'grooming',    label:'完璧なほど身だしなみを整える',  cat:'📝 仕事術・対人',
+    def:'髪・体臭・鼻毛・眉・服装・口臭・靴のすべてが整っている',
+    criteria:{5:'全ての項目が完璧に整っている',4:'ほぼ全て整っている',3:'大半は整っているが漏れがある',2:'半分程度しか整っていない',1:'全く整っていない'} },
+  { id:'deep_listen', label:'身近な人の話を集中して聞く',   cat:'📝 仕事術・対人',
+    def:'ながら聞きをせず、相手の目を見て質問を交えながら聞く',
+    criteria:{5:'常に集中して丁寧に聴けている',4:'ほぼ集中して聴けている',3:'半分程度は集中して聴けている',2:'ながら聞きをしてしまうことが多い',1:'全くできていない'} },
+  { id:'compliment',  label:'人の良いところを見つけて伝える', cat:'📝 仕事術・対人',
+    def:'他者の姿勢や行動に対し、肯定的な意見を伝えている',
+    criteria:{5:'毎日誰かの良さを見つけて伝えられている',4:'よく伝えられている',3:'たまに伝えられている',2:'あまり伝えられていない',1:'全くできていない'} },
+  { id:'smile_greet', label:'笑顔で元気にあいさつする',     cat:'📝 仕事術・対人',
+    def:'相手の顔を見て口角を上げて元気にあいさつする',
+    criteria:{5:'常に笑顔でできている',4:'ほぼできている',3:'半分程度できている',2:'あまりできていない',1:'全くできていない'} },
+  { id:'nuance',      label:'余白のある伝え方をする',        cat:'📝 仕事術・対人',
+    def:'いかなる場面でも断定を避け、余白のある伝え方をしている',
+    criteria:{5:'常にできている',4:'ほぼできている',3:'半分程度できている',2:'断定してしまうことが多い',1:'全くできていない'} },
 ];
 const STORAGE_HABITS = 'sensei_habits';
 let habitDate = dateToString(new Date()); // 習慣チェックの表示日
@@ -1712,12 +1824,14 @@ function setHabitRating(habitId, val, date) {
   saveHabitsData(data);
 }
 
+// 評価値→ラベル変換 (5=100%完璧〜1=✕取組なし)
+const HABIT_LABELS = {5:'100%', 4:'80%', 3:'50%', 2:'20%', 1:'✕'};
+
 function renderHabitItems(container, dateKey, onChange) {
   const data = loadHabits();
   const dateData = data[dateKey] || {};
   const answered = HABITS.filter(h => (dateData[h.id]||0) > 0).length;
   const total = HABITS.length;
-  const avgPct = total > 0 ? Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100) : 0;
 
   // カテゴリ別
   const cats = [...new Set(HABITS.map(h => h.cat))];
@@ -1726,27 +1840,40 @@ function renderHabitItems(container, dateKey, onChange) {
     html += `<div class="habit-section-label">${cat}</div>`;
     HABITS.filter(h => h.cat === cat).forEach(h => {
       const val = dateData[h.id] || 0;
+      const criteriaText = val > 0 ? escHtml(h.criteria?.[val] || '') : '';
       html += `<div class="habit-item${val>0?' checked':''}">
         <div class="habit-item-top">
           <div class="habit-label">${escHtml(h.label)}</div>
         </div>
         <div class="habit-rating" data-habit="${h.id}">
-          ${[1,2,3,4,5].map(v=>`<button class="habit-star${val===v?' sel-'+v:''}" data-val="${v}">${v}</button>`).join('')}
+          ${[5,4,3,2,1].map(v=>`<button class="habit-star${val===v?' sel-'+v:''}" data-val="${v}">${HABIT_LABELS[v]}</button>`).join('')}
         </div>
+        <div class="habit-criteria${val>0?' visible':''}" id="hc-${h.id}">${criteriaText}</div>
       </div>`;
     });
   });
   container.innerHTML = html;
   container.querySelectorAll('.habit-rating[data-habit]').forEach(row => {
+    const habitId = row.dataset.habit;
+    const habit = HABITS.find(h=>h.id===habitId);
     row.querySelectorAll('.habit-star').forEach(btn => {
       btn.addEventListener('click', () => {
-        setHabitRating(row.dataset.habit, parseInt(btn.dataset.val), dateKey);
+        const v = parseInt(btn.dataset.val);
+        setHabitRating(habitId, v, dateKey);
+        // 基準テキスト即時更新
+        const criteriaEl = container.querySelector(`#hc-${habitId}`);
+        if(criteriaEl && habit?.criteria) {
+          const newData = loadHabits()[dateKey]||{};
+          const newVal = newData[habitId]||0;
+          criteriaEl.textContent = newVal>0 ? (habit.criteria[newVal]||'') : '';
+          criteriaEl.classList.toggle('visible', newVal>0);
+        }
         if (onChange) onChange();
         else renderHabitTab();
       });
     });
   });
-  return {answered, total, avgPct};
+  return {answered, total};
 }
 
 function renderHabitTab() {
@@ -1756,7 +1883,8 @@ function renderHabitTab() {
   const dateData = data[habitDate] || {};
   const answered = HABITS.filter(h=>(dateData[h.id]||0)>0).length;
   const total = HABITS.length;
-  const pct = Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100);
+  // 平均スコア = (合計スコア / (total*5)) * 100 — 未回答は0扱い
+  const avgPct = Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100);
 
   const panel = document.getElementById('mob-habit');
   const header = `
@@ -1767,10 +1895,10 @@ function renderHabitTab() {
     </div>
     <div class="habit-header-card">
       <div class="habit-header-top">
-        <span class="habit-header-title">習慣チェック</span>
-        <span class="habit-score-txt">${answered}/${total} &nbsp;${pct}%</span>
+        <span class="habit-header-title">習慣チェック（${answered}/${total}）</span>
+        <span class="habit-score-txt">${avgPct}%</span>
       </div>
-      <div class="habit-progress-wrap"><div class="habit-progress-fill" style="width:${pct}%"></div></div>
+      <div class="habit-progress-wrap"><div class="habit-progress-fill" style="width:${avgPct}%"></div></div>
     </div>`;
   const itemsWrap = document.createElement('div');
   panel.innerHTML = header;
@@ -1806,7 +1934,9 @@ function initGreeting() {
       <div class="greeting-sub">${escHtml(mot.sub)}</div>
       <div class="greeting-divider"></div>
       <div class="greeting-q-label">今日の問い</div>
-      <div class="greeting-q">${escHtml(q)}</div>
+      <div class="greeting-q">${escHtml(mot.q || q)}</div>
+      <div class="greeting-q-label" style="margin-top:14px">今日の夕方、振り返ること</div>
+      <div class="greeting-q" style="font-size:11.5px;color:var(--text-muted)">${escHtml(mot.reflect || '')}</div>
       <button class="greeting-dismiss" id="greeting-dismiss-btn">習慣チェックへ →</button>
     </div>`;
   overlay.classList.add('visible');
@@ -1981,13 +2111,25 @@ function switchMobTab(tab) {
 }
 
 // --- mob-log 初期化 (HTML重複をJSで解消) ---
-let logRefDate = dateToString(new Date()); // ログ記入対象日
+function makeRefCard(dateStr, prefix) {
+  const d = stringToDate(dateStr);
+  const label = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+  const ph = `${label}の出来事・気づき・感情を150字以内で振り返ってください。良かったことや学びを中心に。`;
+  return `
+    <div class="ref-card" style="margin-bottom:14px">
+      <div class="ref-date-label">${label}</div>
+      <textarea class="ref-textarea" id="${prefix}log-ta" maxlength="150" placeholder="${escHtml(ph)}"></textarea>
+      <div class="ref-foot">
+        <div class="char-ct" id="${prefix}char-ct-wrap"><span id="${prefix}char-ct">0</span><span class="char-sep"> / 150</span></div>
+        <button class="ref-send" id="${prefix}log-send-btn" data-date="${dateStr}">振り返りを記録 →</button>
+      </div>
+    </div>`;
+}
 
 function initMobLog() {
   const todayStr = dateToString(new Date());
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
   const yestStr = dateToString(yesterday);
-  const yestLabel = `${yesterday.getMonth()+1}/${yesterday.getDate()}（昨日）`;
 
   document.getElementById('mob-log').innerHTML = `
     <div>
@@ -1998,22 +2140,10 @@ function initMobLog() {
       </div>
     </div>
     <div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="p-title" style="margin-bottom:0">振り返り</div>
-        <select id="mob-log-date-sel" style="background:var(--bg-col);border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-jp);font-size:13px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer">
-          <option value="${todayStr}">今日</option>
-          <option value="${yestStr}">${yestLabel}</option>
-        </select>
-      </div>
-      <div class="ref-card">
-        <div class="ref-date-label" id="mob-ref-date-label"></div>
-        <textarea class="ref-textarea" id="mob-log-ta" maxlength="150"
-          placeholder="今日一日の出来事・気づき・感情を150字以内で振り返ってください。良かったことや学びを中心に、明日への一言も。"></textarea>
-        <div class="ref-foot">
-          <div class="char-ct" id="mob-char-ct-wrap"><span id="mob-char-ct">0</span><span class="char-sep"> / 150</span></div>
-          <button class="ref-send" id="mob-log-send-btn">振り返りを記録 →</button>
-        </div>
-      </div>
+      <div class="p-title">今日の振り返り</div>
+      ${makeRefCard(todayStr, 'mob-')}
+      <div class="p-title" style="margin-top:8px">昨日の振り返り</div>
+      ${makeRefCard(yestStr, 'mob-y-')}
     </div>
     <div id="mob-ai-review-section" style="display:none">
       <div class="p-title">AI添削フィードバック</div>
@@ -2035,23 +2165,24 @@ function initMobLog() {
         <div id="log-entries-mobile"></div>
       </div>
     </div>`;
-  // mob-log のイベントリスナー設定
-  document.getElementById('mob-log-date-sel').addEventListener('change', (e) => {
-    logRefDate = e.target.value;
-    const d = stringToDate(logRefDate);
-    const lbl = document.getElementById('mob-ref-date-label');
-    if(lbl) lbl.textContent = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
-  });
-  document.getElementById('mob-log-send-btn').addEventListener('click', () => {
-    const text = document.getElementById('mob-log-ta').value.trim();
-    if (!text) { document.getElementById('mob-log-ta').focus(); return; }
-    saveReflection(text, logRefDate); triggerAIReview(text, 'mob-');
-    document.getElementById('mob-log-ta').value = '';
-    document.getElementById('mob-char-ct').textContent = '0';
-    document.getElementById('mob-char-ct-wrap').classList.remove('warn');
+  // 今日・昨日のログ送信ボタン
+  ['mob-', 'mob-y-'].forEach(prefix => {
+    const btn = document.getElementById(prefix+'log-send-btn');
+    if (!btn) return;
+    const targetDate = btn.dataset.date;
+    btn.addEventListener('click', () => {
+      const ta = document.getElementById(prefix+'log-ta');
+      const text = ta.value.trim();
+      if (!text) { ta.focus(); return; }
+      saveReflection(text, targetDate);
+      if (prefix === 'mob-') triggerAIReview(text, 'mob-');
+      ta.value = '';
+      document.getElementById(prefix+'char-ct').textContent = '0';
+      document.getElementById(prefix+'char-ct-wrap').classList.remove('warn');
+    });
+    setupCharCounter(prefix+'log-ta', prefix+'char-ct', prefix+'char-ct-wrap');
   });
   document.getElementById('mob-log-toggle-btn').addEventListener('click', () => toggleLogHistory('mob-'));
-  setupCharCounter('mob-log-ta', 'mob-char-ct', 'mob-char-ct-wrap');
 }
 
 (function initSwipe() {
