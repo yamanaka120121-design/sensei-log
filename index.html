@@ -154,26 +154,129 @@ body.rp-open .right-panel{display:flex}
 .popup-del{flex:1;background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red);font-size:11px;padding:6px 10px;border-radius:4px;cursor:pointer;font-family:var(--font-jp);transition:background .15s;min-height:32px} .popup-del:hover{background:var(--red-bg)}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-col);border:1px solid var(--border);padding:10px 20px;border-radius:20px;font-size:12px;color:var(--text-muted);opacity:0;transition:opacity .2s,transform .2s;z-index:300;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)} @media(min-width:768px){.toast{bottom:24px}}
-/* Mobile */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--mob-nav-h);background:var(--bg-col);border-top:1px solid var(--border);z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
-.mobile-nav-inner{display:flex;height:100%} .m-tab.active{color:var(--cyan)}
-.m-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:var(--font-jp);font-size:10px;transition:color .15s;min-height:44px}
+/* Mobile nav base (overridden in media query) */
+.mobile-nav{display:none;position:fixed;z-index:50}
+.mobile-nav-inner{display:flex} .m-tab.active{color:var(--cyan)}
+.m-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:var(--font-jp);font-size:9px;transition:color .15s,background .12s;-webkit-tap-highlight-color:transparent}
 .m-tab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.mob-log{display:none;position:fixed;top:var(--header-h);left:0;right:0;bottom:var(--mob-nav-h);background:var(--bg);z-index:40;overflow-y:auto;padding:20px 16px;flex-direction:column;gap:20px}
-.mob-log.visible{display:flex} .mob-log .ref-textarea{height:140px;font-size:16px} .mob-log .ref-send{min-height:44px}
+.m-tab.active{background:rgba(0,200,224,0.1);color:var(--cyan);border-radius:12px}
+.mob-log{display:none;position:fixed;top:var(--header-h);left:0;right:0;bottom:0;background:var(--bg);z-index:40;overflow-y:auto;padding:20px 16px 100px;flex-direction:column;gap:20px}
+.mob-log.visible{display:flex} .mob-log .ref-textarea{height:140px;font-size:16px} .mob-log .ref-send{min-height:48px}
+
+/* =========================================================
+   Week strip (モバイル週間ストリップ)
+   ========================================================= */
+.mob-week-strip{display:none;overflow-x:auto;background:var(--bg-col);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mob-week-strip::-webkit-scrollbar{display:none}
+.mob-week-strip.visible{display:flex;align-items:stretch;padding:6px 8px;gap:4px;flex-shrink:0}
+.mob-day-cell{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:10px;cursor:pointer;min-width:42px;flex-shrink:0;transition:background .12s;-webkit-tap-highlight-color:transparent}
+.mob-day-cell.active{background:rgba(0,200,224,0.12);outline:1px solid rgba(0,200,224,0.3)}
+.mob-day-cell:active{opacity:.7}
+.mob-day-dow{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase}
+.mob-day-num{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.mob-day-cell.active .mob-day-num{background:var(--cyan);color:#000}
+.mob-day-cell.is-today:not(.active) .mob-day-num{color:var(--cyan)}
+.mob-day-dots{display:flex;gap:2px;height:6px;align-items:center}
+.mob-day-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* =========================================================
+   月表示ビュー (Month view)
+   ========================================================= */
+.month-view-container{display:none;flex:1;overflow-y:auto;flex-direction:column;padding:12px 16px 20px}
+body.view-month .month-view-container{display:flex}
+body.view-month .cal-scroll{display:none}
+.month-grid-header{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px}
+.month-grid-dow{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);padding:4px 0;letter-spacing:.06em}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.month-cell{min-height:80px;background:var(--bg-col);border:1px solid var(--border-dim);border-radius:5px;padding:6px 5px;cursor:pointer;transition:background .1s;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+.month-cell:hover{background:var(--bg-hover)}
+.month-cell.other-month{opacity:.35}
+.month-cell.is-today{border-color:var(--cyan);background:rgba(0,200,224,0.05)}
+.month-cell.is-today .month-day-num{color:#000;background:var(--cyan);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.month-day-num{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500;line-height:1;margin-bottom:3px}
+.month-evt-dot{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 3px;border-radius:2px;line-height:1.4}
+.month-evt-dot.lesson{background:rgba(74,222,128,0.15);color:var(--green)}
+.month-evt-dot.club{background:rgba(0,200,224,0.15);color:var(--cyan)}
+.month-evt-dot.event{background:rgba(248,113,113,0.15);color:var(--red)}
+.month-evt-dot.private{background:rgba(167,139,250,0.15);color:var(--purple)}
+.month-evt-dot.other{background:rgba(107,114,128,0.15);color:var(--gray)}
+.month-evt-more{font-size:9px;color:var(--text-dim);padding-left:3px}
+.month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px;gap:8px}
+.month-nav-title{font-family:var(--font-mono);font-size:15px;font-weight:500;color:var(--text);letter-spacing:.04em}
+
+/* モバイル月表示 */
+.mob-month{display:none;position:fixed;top:var(--header-h);left:0;right:0;bottom:0;background:var(--bg);z-index:40;overflow-y:auto;padding:12px 10px 100px;flex-direction:column}
+.mob-month.visible{display:flex}
+.mob-month .month-cell{min-height:64px}
+.mob-month .month-day-num{font-size:11px}
+.mob-month .month-evt-dot{font-size:9px}
+
 @media(max-width:767px){
-  :root{--gutter-w:44px;--header-h:50px}
+  :root{--gutter-w:40px;--header-h:50px}
+  /* ─── テキストコントラスト強化（昼間屋外想定） ─── */
+  :root{
+    --text:#f0f5fa;
+    --text-muted:#c2d0e0;
+    --text-dim:#5a7090;
+    --border:rgba(255,255,255,0.12);
+    --border-dim:rgba(255,255,255,0.07);
+  }
+  /* ─── ヘッダー ─── */
   .sidebar,.right-panel,.view-tabs,.today-date,.rp-toggle-btn{display:none}
-  .add-btn{padding:8px 12px;font-size:11px} .week-label{min-width:100px;font-size:11px}
-  .app-body{height:calc(100vh - var(--header-h) - var(--mob-nav-h) - env(safe-area-inset-bottom,0px))} .mobile-nav{display:flex}
+  .add-btn{font-size:0;width:38px;height:38px;padding:0;border-radius:50%;position:relative;flex-shrink:0}
+  .add-btn::before{content:'＋';font-size:22px;font-weight:300;line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+  .week-label{min-width:88px;font-size:11px}
+  .nav-btn{min-width:40px;height:40px;font-size:16px}
+  /* ─── アプリ本体 ─── */
+  .app-body{height:calc(100vh - var(--header-h));overflow:hidden}
+  /* ─── カレンダー（週間ストリップ付き） ─── */
+  .mob-week-strip.visible{display:flex}
+  .cal-scroll{height:calc(100% - 62px)} /* strip height を引く */
   .day-col{display:none} .day-col.mob-show{display:block}
-  .day-header{display:none} .day-header.mob-show{display:block;flex:1}
-  .dh-gutter{width:var(--gutter-w)} .modal{max-width:100%;border-radius:14px} .evt-popup{max-width:calc(100vw - 32px)}
-  .nav-btn{min-width:40px;height:40px}
-  /* iOS 自動ズーム防止: モーダル内入力はすべて 16px 以上 */
+  .day-header-row{display:none} /* strip に置換 */
+  .dh-gutter{width:var(--gutter-w)}
+  .modal{max-width:100%;border-radius:14px} .evt-popup{max-width:calc(100vw - 32px)}
+  /* ─── 時間軸ラベル 強化 ─── */
+  .tl-hour{font-size:13px;color:rgba(240,245,250,0.82);right:5px}
+  .tl-period{font-size:11px;color:rgba(240,245,250,0.65);right:34px}
+  .sband-lbl{font-size:10px;color:rgba(240,245,250,0.45)}
+  /* ─── イベントカード ─── */
+  .evt{left:2px;right:2px}
+  .evt-title{font-size:12.5px}
+  .evt-sub{font-size:11px;color:rgba(240,245,250,0.7)}
+  /* ─── iOS 自動ズーム防止 ─── */
   .field input,.field select{font-size:16px !important}
-  /* スマホでは削除ボタンを常時表示 */
-  .evt.user-evt .evt-del{display:flex;color:rgba(255,255,255,0.38)}
+  /* ─── スマホでは削除ボタンを常時表示 ─── */
+  .evt.user-evt .evt-del{display:flex;color:rgba(255,255,255,0.5)}
+  /* ─── フローティング右サイドナビ ─── */
+  .mobile-nav{
+    display:flex;
+    bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    right:12px;
+    left:auto;
+    width:62px;
+    height:auto;
+    padding:8px 5px;
+    border-radius:22px;
+    background:rgba(13,19,32,0.97);
+    border:1px solid rgba(255,255,255,0.14);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(0,200,224,0.06);
+  }
+  .mobile-nav-inner{flex-direction:column;height:auto;gap:3px}
+  .m-tab{flex:none;width:52px;height:52px;border-radius:14px}
+  /* ─── ログ・習慣・月パネル ─── */
+  .mob-log{padding:16px 14px 90px}
+  .mob-habit{bottom:0;right:0;padding:14px 14px 90px}
+  .mob-month{padding:12px 8px 90px}
+  /* ─── 習慣セクションラベル ─── */
+  .habit-section-label{font-size:13px;color:rgba(240,245,250,0.55);letter-spacing:.05em;text-transform:none;margin:16px 0 8px 2px}
+  .habit-label{font-size:14px;color:var(--text-muted);line-height:1.45}
+  .habit-item.checked .habit-label{color:var(--text)}
+  .habit-score-txt{font-size:16px}
+  /* ─── トースト ─── */
+  .toast{bottom:120px}
 }
 @media(max-width:400px){.logo{font-size:12px}}
 /* アクセシビリティ: フォーカスリング */
@@ -222,6 +325,25 @@ body.rp-open .right-panel{display:flex}
 .habit-date-label{font-family:var(--font-mono);font-size:11px;color:var(--text-muted)}
 .habit-date-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
 .habit-date-btn:active{border-color:var(--cyan);color:var(--cyan)}
+/* 5段階評価 */
+.habit-item{flex-direction:column;align-items:flex-start;gap:8px}
+.habit-item-top{display:flex;align-items:center;gap:10px;width:100%}
+.habit-rating{display:flex;gap:5px;width:100%}
+.habit-star{flex:1;height:34px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-mono);transition:all .12s;-webkit-tap-highlight-color:transparent}
+.habit-star:active{transform:scale(.95)}
+.habit-star.sel-1,.habit-star.sel-2{background:rgba(248,113,113,0.18);border-color:rgba(248,113,113,0.45);color:var(--red)}
+.habit-star.sel-3{background:rgba(251,191,36,0.18);border-color:rgba(251,191,36,0.4);color:var(--amber)}
+.habit-star.sel-4,.habit-star.sel-5{background:rgba(0,200,224,0.18);border-color:rgba(0,200,224,0.45);color:var(--cyan)}
+/* 強制チェック習慣オーバーレイ */
+.habit-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,0.96);z-index:510;overflow-y:auto;padding:20px 16px 40px;flex-direction:column}
+.habit-overlay.visible{display:flex}
+.habit-overlay-head{text-align:center;padding:16px 0 20px}
+.habit-overlay-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.08em;margin-bottom:6px}
+.habit-overlay-sub{font-size:12px;color:var(--text-muted)}
+.habit-overlay-progress{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:14px 0;overflow:hidden}
+.habit-overlay-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:2px;transition:width .3s}
+.habit-overlay-go{background:var(--cyan);color:#000;border:none;font-size:15px;font-weight:700;padding:14px 20px;border-radius:12px;cursor:pointer;width:100%;font-family:var(--font-jp);min-height:52px;margin-top:20px;letter-spacing:.04em;transition:opacity .15s}
+.habit-overlay-skip{background:none;border:none;color:var(--text-dim);font-size:11px;padding:12px;width:100%;font-family:var(--font-jp);cursor:pointer;margin-top:4px}
   </style>
 </head>
 <body>
@@ -237,6 +359,7 @@ body.rp-open .right-panel{display:flex}
   <div class="view-tabs">
     <button class="view-tab active" data-view="week">週</button>
     <button class="view-tab" data-view="day">日</button>
+    <button class="view-tab" data-view="month">月</button>
   </div>
   <div class="header-right">
     <div class="today-date" id="today-date"></div>
@@ -273,6 +396,8 @@ body.rp-open .right-panel{display:flex}
   </aside>
 
   <main class="calendar-main">
+    <!-- 週間ストリップ（モバイル専用） -->
+    <div class="mob-week-strip" id="mob-week-strip"></div>
     <div class="cal-scroll" id="cal-scroll">
       <div class="day-header-row" id="day-header-row"><div class="dh-gutter"></div></div>
       <div class="time-body" id="time-body">
@@ -280,6 +405,8 @@ body.rp-open .right-panel{display:flex}
         <div class="day-cols" id="day-cols"></div>
       </div>
     </div>
+    <!-- 月ビュー（デスクトップ） -->
+    <div class="month-view-container" id="month-view-container"></div>
   </main>
 
   <aside class="right-panel">
@@ -339,12 +466,18 @@ body.rp-open .right-panel{display:flex}
       <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       チェック
     </button>
+    <button class="m-tab" id="m-tab-month" onclick="switchMobTab('month')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14" stroke-width="2"/><line x1="12" y1="14" x2="12" y2="14" stroke-width="2"/><line x1="16" y1="14" x2="16" y2="14" stroke-width="2"/></svg>
+      月
+    </button>
   </div>
 </nav>
 
 <div class="mob-log" id="mob-log"><!-- JS で生成 --></div>
 <div class="mob-habit" id="mob-habit"><!-- JS で生成 --></div>
+<div class="mob-month" id="mob-month"><!-- JS で生成 --></div>
 <div class="greeting-overlay" id="greeting-overlay"><!-- JS で生成 --></div>
+<div class="habit-overlay" id="habit-overlay"><!-- JS で生成 --></div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
@@ -442,7 +575,7 @@ body.rp-open .right-panel{display:flex}
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const PX_PER_MIN = 1.5, START_HOUR = 5, END_HOUR = 22;
+const PX_PER_MIN = 1.5, START_HOUR = 0, END_HOUR = 24;
 const TOTAL_H = (END_HOUR - START_HOUR) * 60 * PX_PER_MIN;
 const DAYS_EN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const DAYS_JP = ['日','月','火','水','木','金','土'];
@@ -759,12 +892,25 @@ function buildCalendar() {
       const timeStr = `${ev.start}–${ev.end}`;
       const periodLabel = (ev.period && ev.cat === 'lesson') ? ev.period : '';
 
-      let inner = `<div class="evt-title">${escHtml(abbrevLesson(ev))}</div>`;
-      if (blockH >= 30) {
-        // 時限ラベルと時刻を両方表示
-        inner += `<div class="evt-sub">${periodLabel ? escHtml(periodLabel) + '　' : ''}${timeStr}</div>`;
+      // モバイル: 横幅フル活用レイアウト（タイトル左 / 時刻右）
+      const isMob = isMobile();
+      let inner;
+      if (isMob && blockH >= 28) {
+        inner = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;width:100%">
+          <div style="flex:1;min-width:0">
+            <div class="evt-title">${escHtml(abbrevLesson(ev))}</div>
+            ${periodLabel && blockH>=44 ? `<div class="evt-sub">${escHtml(periodLabel)}</div>` : ''}
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(240,245,250,0.65);white-space:nowrap;flex-shrink:0;padding-top:1px">${timeStr}</div>
+        </div>`;
+        if (ev.sub && blockH >= 60) inner += `<div class="evt-sub">${escHtml(ev.sub)}</div>`;
+      } else {
+        inner = `<div class="evt-title">${escHtml(abbrevLesson(ev))}</div>`;
+        if (blockH >= 30) {
+          inner += `<div class="evt-sub">${periodLabel ? escHtml(periodLabel) + '　' : ''}${timeStr}</div>`;
+        }
+        if (ev.sub && blockH >= 56) inner += `<div class="evt-sub">${escHtml(ev.sub)}</div>`;
       }
-      if (ev.sub && blockH >= 56) inner += `<div class="evt-sub">${escHtml(ev.sub)}</div>`;
       // ユーザーイベントのみ ✕ 削除ボタン（PC: ホバー表示）
       if (ev.isUser) inner += `<button class="evt-del" title="削除" aria-label="削除">✕</button>`;
       block.innerHTML = inner;
@@ -787,6 +933,7 @@ function buildCalendar() {
     dayCols.appendChild(col);
   });
   updateNowLine(); buildMiniCal(); updateMiniCalWeek(); renderWeekStats();
+  if (isMobile()) buildMobWeekStrip();
 }
 
 let nowLineEl = null;
@@ -945,8 +1092,13 @@ function goToday() {
 function setView(v) {
   currentView=v;
   document.body.classList.toggle('view-day', v==='day' && !isMobile());
+  document.body.classList.toggle('view-month', v==='month');
   document.querySelectorAll('.view-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.view===v));
-  buildCalendar();
+  if (v === 'month') {
+    buildMonthViewDesktop();
+  } else {
+    buildCalendar();
+  }
 }
 document.querySelectorAll('.view-tab').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
 
@@ -1334,6 +1486,169 @@ function hideEvtPopup() { document.getElementById('evt-popup').style.display='no
 document.addEventListener('click', (e) => { if (popupVisible && !document.getElementById('evt-popup').contains(e.target)) hideEvtPopup(); });
 
 // =========================================================
+// 任意日のイベント取得ヘルパー
+// =========================================================
+function getEventsForDate(dateStr) {
+  const d = stringToDate(dateStr);
+  const dow = d.getDay();
+  const pattern = dayPatterns[dateStr] || (dow===0||dow===6 ? 'none' : 'std');
+  const periods = buildSchoolSchedule(pattern);
+  const result = [];
+  DEFAULT_EVENTS.forEach(ev => {
+    if (ev.day !== dow) return;
+    let start, end;
+    if (ev.clubActivity) {
+      const cs = CLUB_START[pattern]; if (!cs) return;
+      start = cs; end = '18:30';
+    } else if (ev.period && ev.cat==='lesson') {
+      const slot = periods[ev.period]; if (!slot) return;
+      start = slot.start; end = slot.end;
+    } else return;
+    result.push({...ev, date:dateStr, start, end, isUser:false});
+  });
+  userEvents.filter(ev=>ev.date===dateStr).forEach(ev=>result.push({...ev, isUser:true}));
+  return result;
+}
+
+// =========================================================
+// 月ビュー（デスクトップ）
+// =========================================================
+let monthViewYear = new Date().getFullYear();
+let monthViewMonth = new Date().getMonth();
+
+function buildMonthViewDesktop() {
+  const container = document.getElementById('month-view-container');
+  container.innerHTML = '';
+  renderMonthGrid(container, monthViewYear, monthViewMonth, (dateStr) => {
+    // 月ビューからクリックで週ビューへ
+    weekOffset = getWeekOffset(stringToDate(dateStr));
+    setView('week');
+    scrollToSchoolStart();
+  });
+}
+function buildMonthViewMobile(container) {
+  container.innerHTML = '';
+  renderMonthGrid(container, monthViewYear, monthViewMonth, (dateStr) => {
+    weekOffset = getWeekOffset(stringToDate(dateStr));
+    switchMobTab('cal');
+    setTimeout(()=>{ buildCalendar(); buildMobWeekStrip(); scrollToSchoolStart(); }, 50);
+  });
+}
+function getWeekOffset(date) {
+  const monday = getMonday(0);
+  const targetMonday = new Date(date);
+  const d = targetMonday.getDay();
+  targetMonday.setDate(targetMonday.getDate() - (d===0?6:d-1));
+  return Math.round((targetMonday - monday) / (7*86400000));
+}
+function renderMonthGrid(container, year, month, onDayClick) {
+  const today = new Date();
+  const todayStr = dateToString(today);
+  const CAT_COLOR = {lesson:'#4ade80',club:'#00c8e0',event:'#f87171',private:'#a78bfa',other:'#6b7280'};
+  // ナビ
+  const navDiv = document.createElement('div');
+  navDiv.className = 'month-nav';
+  const prevY = month===0?year-1:year, prevM = month===0?11:month-1;
+  const nextY = month===11?year+1:year, nextM = month===11?0:month+1;
+  navDiv.innerHTML = `
+    <button class="nav-btn" id="month-nav-prev">&#8249;</button>
+    <span class="month-nav-title">${year}年 ${month+1}月</span>
+    <button class="nav-btn" id="month-nav-next">&#8250;</button>`;
+  container.appendChild(navDiv);
+  navDiv.querySelector('#month-nav-prev').addEventListener('click',()=>{
+    monthViewYear=prevY; monthViewMonth=prevM;
+    if(container.className==='month-view-container') buildMonthViewDesktop();
+    else { container.innerHTML=''; renderMonthGrid(container,prevY,prevM,onDayClick); }
+  });
+  navDiv.querySelector('#month-nav-next').addEventListener('click',()=>{
+    monthViewYear=nextY; monthViewMonth=nextM;
+    if(container.className==='month-view-container') buildMonthViewDesktop();
+    else { container.innerHTML=''; renderMonthGrid(container,nextY,nextM,onDayClick); }
+  });
+  // 曜日ヘッダー
+  const hdr = document.createElement('div');
+  hdr.className = 'month-grid-header';
+  ['日','月','火','水','木','金','土'].forEach(d=>{
+    const el=document.createElement('div'); el.className='month-grid-dow'; el.textContent=d; hdr.appendChild(el);
+  });
+  container.appendChild(hdr);
+  // グリッド
+  const grid = document.createElement('div');
+  grid.className = 'month-grid';
+  const firstDay = new Date(year, month, 1);
+  const startDow = firstDay.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  let cells = [];
+  for(let i=startDow-1;i>=0;i--) cells.push({d:new Date(year,month-1,daysInPrev-i),otherMonth:true});
+  for(let i=1;i<=daysInMonth;i++) cells.push({d:new Date(year,month,i),otherMonth:false});
+  while(cells.length%7!==0) { const l=cells[cells.length-1].d; cells.push({d:new Date(l.getFullYear(),l.getMonth(),l.getDate()+1),otherMonth:true}); }
+  cells.forEach(cell=>{
+    const dateStr = dateToString(cell.d);
+    const evts = getEventsForDate(dateStr);
+    const cellEl = document.createElement('div');
+    cellEl.className = 'month-cell' + (cell.otherMonth?' other-month':'') + (dateStr===todayStr?' is-today':'');
+    const numEl = document.createElement('div'); numEl.className='month-day-num'; numEl.textContent=cell.d.getDate();
+    cellEl.appendChild(numEl);
+    const shown = evts.slice(0,3);
+    shown.forEach(ev=>{
+      const dot=document.createElement('div'); dot.className=`month-evt-dot ${ev.cat||'other'}`;
+      dot.textContent = ev.title || (ev.period?ev.period+' '+ev.subject:'');
+      cellEl.appendChild(dot);
+    });
+    if(evts.length>3){const m=document.createElement('div');m.className='month-evt-more';m.textContent=`+${evts.length-3}件`;cellEl.appendChild(m);}
+    cellEl.addEventListener('click',()=>onDayClick(dateStr));
+    grid.appendChild(cellEl);
+  });
+  container.appendChild(grid);
+}
+
+// =========================================================
+// モバイル週間ストリップ
+// =========================================================
+let mobSelectedDay = new Date().getDay(); // 0-6
+
+function buildMobWeekStrip() {
+  if (!isMobile()) return;
+  const strip = document.getElementById('mob-week-strip');
+  strip.classList.add('visible');
+  strip.innerHTML = '';
+  const monday = getMonday(weekOffset);
+  const CAT_COLOR = {lesson:'#4ade80',club:'#00c8e0',event:'#f87171',private:'#a78bfa',other:'#6b7280'};
+  const today = new Date(); const todayStr = dateToString(today);
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(d.getDate()+i);
+    const dateStr = dateToString(d);
+    const isActive = (d.getDay() === mobSelectedDay);
+    const isToday = (dateStr === todayStr);
+    const evts = getEventsForDate(dateStr);
+    const cell = document.createElement('div');
+    cell.className = 'mob-day-cell' + (isActive?' active':'') + (isToday?' is-today':'');
+    const cats = [...new Set(evts.map(e=>e.cat).filter(Boolean))].slice(0,3);
+    cell.innerHTML = `
+      <div class="mob-day-dow">${DAYS_JP[d.getDay()]}</div>
+      <div class="mob-day-num">${d.getDate()}</div>
+      <div class="mob-day-dots">${cats.map(c=>`<div class="mob-day-dot" style="background:${CAT_COLOR[c]||'#6b7280'}"></div>`).join('')}</div>`;
+    cell.addEventListener('click',()=>{
+      mobSelectedDay = d.getDay();
+      // update mob-show
+      document.querySelectorAll('.day-col').forEach(col=>{
+        const colDate = col.dataset.date;
+        if(colDate===dateStr){ col.classList.add('mob-show'); }
+        else { col.classList.remove('mob-show'); }
+      });
+      buildMobWeekStrip();
+    });
+    strip.appendChild(cell);
+  }
+  // スクロールしてアクティブセルを中央へ
+  const activeCell = strip.querySelector('.mob-day-cell.active');
+  if(activeCell) {
+    strip.scrollLeft = activeCell.offsetLeft - strip.clientWidth/2 + activeCell.clientWidth/2;
+  }
+}
+
+// =========================================================
 // 今日の一言（motivational messages from life philosophy）
 // =========================================================
 const MOTIVATIONAL_MSGS = [
@@ -1389,24 +1704,62 @@ function loadHabits() {
 function saveHabitsData(data) {
   try { localStorage.setItem(STORAGE_HABITS, JSON.stringify(data)); } catch {}
 }
-function toggleHabit(habitId) {
+function setHabitRating(habitId, val, date) {
+  const d = date || habitDate;
   const data = loadHabits();
-  if (!data[habitDate]) data[habitDate] = {};
-  data[habitDate][habitId] = !data[habitDate][habitId];
+  if (!data[d]) data[d] = {};
+  data[d][habitId] = (data[d][habitId] === val) ? 0 : val; // 同じ値タップで解除
   saveHabitsData(data);
-  renderHabitTab();
 }
-function renderHabitTab() {
+
+function renderHabitItems(container, dateKey, onChange) {
   const data = loadHabits();
-  const todayData = data[habitDate] || {};
-  const checked = HABITS.filter(h => todayData[h.id]).length;
+  const dateData = data[dateKey] || {};
+  const answered = HABITS.filter(h => (dateData[h.id]||0) > 0).length;
   const total = HABITS.length;
-  const pct = Math.round((checked / total) * 100);
+  const avgPct = total > 0 ? Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100) : 0;
+
+  // カテゴリ別
+  const cats = [...new Set(HABITS.map(h => h.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    html += `<div class="habit-section-label">${cat}</div>`;
+    HABITS.filter(h => h.cat === cat).forEach(h => {
+      const val = dateData[h.id] || 0;
+      html += `<div class="habit-item${val>0?' checked':''}">
+        <div class="habit-item-top">
+          <div class="habit-label">${escHtml(h.label)}</div>
+        </div>
+        <div class="habit-rating" data-habit="${h.id}">
+          ${[1,2,3,4,5].map(v=>`<button class="habit-star${val===v?' sel-'+v:''}" data-val="${v}">${v}</button>`).join('')}
+        </div>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+  container.querySelectorAll('.habit-rating[data-habit]').forEach(row => {
+    row.querySelectorAll('.habit-star').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setHabitRating(row.dataset.habit, parseInt(btn.dataset.val), dateKey);
+        if (onChange) onChange();
+        else renderHabitTab();
+      });
+    });
+  });
+  return {answered, total, avgPct};
+}
+
+function renderHabitTab() {
   const d = stringToDate(habitDate);
   const dateLabel = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+  const data = loadHabits();
+  const dateData = data[habitDate] || {};
+  const answered = HABITS.filter(h=>(dateData[h.id]||0)>0).length;
+  const total = HABITS.length;
+  const pct = Math.round((HABITS.reduce((s,h)=>s+(dateData[h.id]||0),0)/(total*5))*100);
 
-  // ヘッダー
-  let html = `
+  const panel = document.getElementById('mob-habit');
+  const header = `
     <div class="habit-date-nav">
       <button class="habit-date-btn" id="habit-prev-btn">‹</button>
       <span class="habit-date-label">${dateLabel}</span>
@@ -1414,44 +1767,27 @@ function renderHabitTab() {
     </div>
     <div class="habit-header-card">
       <div class="habit-header-top">
-        <span class="habit-header-title">今日の習慣チェック</span>
-        <span class="habit-score-txt">${checked} / ${total}</span>
+        <span class="habit-header-title">習慣チェック</span>
+        <span class="habit-score-txt">${answered}/${total} &nbsp;${pct}%</span>
       </div>
-      <div class="habit-progress-wrap">
-        <div class="habit-progress-fill" style="width:${pct}%"></div>
-      </div>
+      <div class="habit-progress-wrap"><div class="habit-progress-fill" style="width:${pct}%"></div></div>
     </div>`;
+  const itemsWrap = document.createElement('div');
+  panel.innerHTML = header;
+  panel.appendChild(itemsWrap);
+  renderHabitItems(itemsWrap, habitDate, renderHabitTab);
 
-  // カテゴリ別にグルーピング
-  const cats = [...new Set(HABITS.map(h => h.cat))];
-  cats.forEach(cat => {
-    html += `<div class="habit-section-label">${cat}</div>`;
-    HABITS.filter(h => h.cat === cat).forEach(h => {
-      const isChecked = !!todayData[h.id];
-      html += `<div class="habit-item${isChecked?' checked':''}" data-habit="${h.id}">
-        <div class="habit-check">${isChecked ? '✓' : ''}</div>
-        <div class="habit-label">${escHtml(h.label)}</div>
-      </div>`;
-    });
+  document.getElementById('habit-prev-btn').addEventListener('click',()=>{
+    const d2=stringToDate(habitDate); d2.setDate(d2.getDate()-1); habitDate=dateToString(d2); renderHabitTab();
   });
-
-  const panel = document.getElementById('mob-habit');
-  panel.innerHTML = html;
-
-  // イベント登録
-  panel.querySelectorAll('.habit-item[data-habit]').forEach(el => {
-    el.addEventListener('click', () => toggleHabit(el.dataset.habit));
-  });
-  document.getElementById('habit-prev-btn').addEventListener('click', () => {
-    const d2 = stringToDate(habitDate); d2.setDate(d2.getDate()-1); habitDate = dateToString(d2); renderHabitTab();
-  });
-  document.getElementById('habit-next-btn').addEventListener('click', () => {
-    const d2 = stringToDate(habitDate); d2.setDate(d2.getDate()+1); habitDate = dateToString(d2); renderHabitTab();
+  document.getElementById('habit-next-btn').addEventListener('click',()=>{
+    const d2=stringToDate(habitDate); d2.setDate(d2.getDate()+1); habitDate=dateToString(d2); renderHabitTab();
   });
 }
 
 // =========================================================
 // グリーティングオーバーレイ（モバイル専用・1日1回）
+// → 習慣チェック強制フロー
 // =========================================================
 const STORAGE_GREETING = 'sensei_greeting_shown';
 function initGreeting() {
@@ -1471,10 +1807,54 @@ function initGreeting() {
       <div class="greeting-divider"></div>
       <div class="greeting-q-label">今日の問い</div>
       <div class="greeting-q">${escHtml(q)}</div>
-      <button class="greeting-dismiss" id="greeting-dismiss-btn">今日も行こう →</button>
+      <button class="greeting-dismiss" id="greeting-dismiss-btn">習慣チェックへ →</button>
     </div>`;
   overlay.classList.add('visible');
   document.getElementById('greeting-dismiss-btn').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+    showHabitCheckOverlay(today);
+  });
+}
+
+function showHabitCheckOverlay(today) {
+  const overlay = document.getElementById('habit-overlay');
+  const d = new Date();
+  const dateStr = dateToString(d);
+  const data = loadHabits();
+  const dateData = data[dateStr] || {};
+  let answered = HABITS.filter(h=>(dateData[h.id]||0)>0).length;
+
+  function refresh() {
+    const d2 = loadHabits()[dateStr] || {};
+    answered = HABITS.filter(h=>(d2[h.id]||0)>0).length;
+    const pct = Math.round(answered/HABITS.length*100);
+    const fill = overlay.querySelector('.habit-overlay-fill');
+    const goBtn = overlay.querySelector('.habit-overlay-go');
+    if(fill) fill.style.width = pct+'%';
+    if(goBtn) goBtn.textContent = `今日を始める（${answered}/${HABITS.length}）→`;
+    // items re-render handled by renderHabitItems internally
+  }
+
+  overlay.innerHTML = `
+    <div class="habit-overlay-head">
+      <div class="habit-overlay-title">今日の習慣チェック</div>
+      <div class="habit-overlay-sub">5段階で評価してください（1=全くできず、5=完璧）</div>
+      <div class="habit-overlay-progress"><div class="habit-overlay-fill" style="width:0%"></div></div>
+    </div>
+    <div id="habit-overlay-items"></div>
+    <button class="habit-overlay-go">今日を始める（0/${HABITS.length}）→</button>
+    <button class="habit-overlay-skip">スキップして今日のカレンダーを見る</button>`;
+  overlay.classList.add('visible');
+
+  const itemsEl = overlay.querySelector('#habit-overlay-items');
+  renderHabitItems(itemsEl, dateStr, refresh);
+  refresh();
+
+  overlay.querySelector('.habit-overlay-go').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+    localStorage.setItem(STORAGE_GREETING, today);
+  });
+  overlay.querySelector('.habit-overlay-skip').addEventListener('click', () => {
     overlay.classList.remove('visible');
     localStorage.setItem(STORAGE_GREETING, today);
   });
@@ -1542,11 +1922,12 @@ function renderLogEntries() {
   document.getElementById('log-entries-mobile').innerHTML=html;
 }
 
-function saveReflection(body) {
+function saveReflection(body, dateOverride) {
   if (!body.trim()) return;
-  const today=dateToString(new Date()), refs=loadReflections();
-  const idx=refs.findIndex(r=>r.date===today);
-  if (idx>=0) refs[idx].body=body; else refs.unshift({date:today,body});
+  const targetDate = dateOverride || dateToString(new Date());
+  const refs = loadReflections();
+  const idx = refs.findIndex(r=>r.date===targetDate);
+  if (idx>=0) refs[idx].body=body; else refs.unshift({date:targetDate,body});
   saveReflections(refs); renderLogEntries(); showToast('記録しました ✓');
 }
 
@@ -1577,9 +1958,9 @@ function showToast(msg) {
 }
 
 function switchMobTab(tab) {
-  document.getElementById('m-tab-cal').classList.toggle('active', tab==='cal');
-  document.getElementById('m-tab-log').classList.toggle('active', tab==='log');
-  document.getElementById('m-tab-habit').classList.toggle('active', tab==='habit');
+  ['cal','log','habit','month'].forEach(t => {
+    document.getElementById('m-tab-'+t)?.classList.toggle('active', t===tab);
+  });
   document.getElementById('mob-log').classList.toggle('visible', tab==='log');
   const habitEl = document.getElementById('mob-habit');
   if (tab === 'habit') {
@@ -1588,10 +1969,26 @@ function switchMobTab(tab) {
   } else {
     habitEl.classList.remove('visible');
   }
+  const monthEl = document.getElementById('mob-month');
+  if (tab === 'month') {
+    monthEl.classList.add('visible');
+    buildMonthViewMobile(monthEl);
+  } else {
+    monthEl.classList.remove('visible');
+  }
+  // カレンダーとストリップは cal タブのみ
+  document.getElementById('mob-week-strip').classList.toggle('visible', tab==='cal');
 }
 
 // --- mob-log 初期化 (HTML重複をJSで解消) ---
+let logRefDate = dateToString(new Date()); // ログ記入対象日
+
 function initMobLog() {
+  const todayStr = dateToString(new Date());
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yestStr = dateToString(yesterday);
+  const yestLabel = `${yesterday.getMonth()+1}/${yesterday.getDate()}（昨日）`;
+
   document.getElementById('mob-log').innerHTML = `
     <div>
       <div class="p-title">朝の問い</div>
@@ -1601,7 +1998,13 @@ function initMobLog() {
       </div>
     </div>
     <div>
-      <div class="p-title">今日の振り返り</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="p-title" style="margin-bottom:0">振り返り</div>
+        <select id="mob-log-date-sel" style="background:var(--bg-col);border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-jp);font-size:13px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer">
+          <option value="${todayStr}">今日</option>
+          <option value="${yestStr}">${yestLabel}</option>
+        </select>
+      </div>
       <div class="ref-card">
         <div class="ref-date-label" id="mob-ref-date-label"></div>
         <textarea class="ref-textarea" id="mob-log-ta" maxlength="150"
@@ -1633,10 +2036,16 @@ function initMobLog() {
       </div>
     </div>`;
   // mob-log のイベントリスナー設定
+  document.getElementById('mob-log-date-sel').addEventListener('change', (e) => {
+    logRefDate = e.target.value;
+    const d = stringToDate(logRefDate);
+    const lbl = document.getElementById('mob-ref-date-label');
+    if(lbl) lbl.textContent = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+  });
   document.getElementById('mob-log-send-btn').addEventListener('click', () => {
     const text = document.getElementById('mob-log-ta').value.trim();
     if (!text) { document.getElementById('mob-log-ta').focus(); return; }
-    saveReflection(text); triggerAIReview(text, 'mob-');
+    saveReflection(text, logRefDate); triggerAIReview(text, 'mob-');
     document.getElementById('mob-log-ta').value = '';
     document.getElementById('mob-char-ct').textContent = '0';
     document.getElementById('mob-char-ct-wrap').classList.remove('warn');
@@ -1711,6 +2120,7 @@ if (!localStorage.getItem(PRESET_V2)) {
 }
 
 initMobLog(); buildCalendar(); scrollToSchoolStart(); renderLogEntries(); updateRefDateLabel();
+if (isMobile()) { buildMobWeekStrip(); switchMobTab('cal'); }
 initGreeting();
 document.getElementById('morning-q-text').textContent = getTodayMorningQuestion();
 setInterval(updateNowLine, 60000);
