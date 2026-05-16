@@ -184,6 +184,44 @@ body.rp-open .right-panel{display:flex}
 .toast-undo:hover{background:rgba(255,255,255,0.09)}
 /* タッチドラッグ: スクロールとの競合防止 */
 .evt.user-evt{touch-action:none}
+
+/* =========================================================
+   今日の一言 — グリーティングオーバーレイ（モバイル専用）
+   ========================================================= */
+.greeting-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,0.93);z-index:500;align-items:center;justify-content:center;padding:24px 20px}
+.greeting-overlay.visible{display:flex}
+.greeting-card{background:var(--bg-col);border:1px solid rgba(0,200,224,0.18);border-radius:18px;padding:30px 24px 24px;max-width:340px;width:100%;text-align:center;animation:modalIn .25s ease}
+.greeting-date-str{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:.1em;margin-bottom:22px}
+.greeting-msg{font-size:18px;font-weight:700;color:var(--text);line-height:1.55;margin-bottom:10px}
+.greeting-sub{font-size:12.5px;color:var(--text-muted);line-height:1.75;margin-bottom:0}
+.greeting-divider{height:1px;background:var(--border);margin:20px 0}
+.greeting-q-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px;opacity:.7}
+.greeting-q{font-size:12.5px;color:var(--text);line-height:1.75;margin-bottom:24px}
+.greeting-dismiss{background:var(--cyan);color:#000;border:none;font-size:15px;font-weight:700;padding:13px 20px;border-radius:10px;cursor:pointer;width:100%;font-family:var(--font-jp);min-height:50px;transition:opacity .15s;letter-spacing:.04em}
+.greeting-dismiss:active{opacity:.8}
+
+/* =========================================================
+   習慣チェックタブ
+   ========================================================= */
+.mob-habit{display:none;position:fixed;top:var(--header-h);left:0;right:0;bottom:calc(var(--mob-nav-h) + env(safe-area-inset-bottom,0px));background:var(--bg);z-index:40;overflow-y:auto;padding:14px 14px 20px;flex-direction:column}
+.mob-habit.visible{display:flex}
+.habit-header-card{background:var(--bg-col);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.habit-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.habit-header-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.habit-score-txt{font-family:var(--font-mono);font-size:14px;color:var(--cyan);font-weight:600}
+.habit-progress-wrap{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.habit-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .4s ease}
+.habit-section-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-dim);margin:14px 0 7px 2px}
+.habit-item{display:flex;align-items:center;gap:13px;padding:12px 14px;background:var(--bg-col);border:1px solid var(--border);border-radius:10px;margin-bottom:7px;cursor:pointer;transition:background .12s,border-color .12s;min-height:48px;user-select:none;-webkit-tap-highlight-color:transparent}
+.habit-item.checked{background:rgba(0,200,224,0.07);border-color:rgba(0,200,224,0.32)}
+.habit-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;color:transparent}
+.habit-item.checked .habit-check{background:var(--cyan);border-color:var(--cyan);color:#000}
+.habit-label{font-size:13.5px;color:var(--text-muted);line-height:1.4;flex:1}
+.habit-item.checked .habit-label{color:var(--text)}
+.habit-date-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.habit-date-label{font-family:var(--font-mono);font-size:11px;color:var(--text-muted)}
+.habit-date-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.habit-date-btn:active{border-color:var(--cyan);color:var(--cyan)}
   </style>
 </head>
 <body>
@@ -297,10 +335,16 @@ body.rp-open .right-panel{display:flex}
       <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       ログ
     </button>
+    <button class="m-tab" id="m-tab-habit" onclick="switchMobTab('habit')">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      チェック
+    </button>
   </div>
 </nav>
 
 <div class="mob-log" id="mob-log"><!-- JS で生成 --></div>
+<div class="mob-habit" id="mob-habit"><!-- JS で生成 --></div>
+<div class="greeting-overlay" id="greeting-overlay"><!-- JS で生成 --></div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
@@ -1289,6 +1333,153 @@ function showEvtPopup(e, ev, date) {
 function hideEvtPopup() { document.getElementById('evt-popup').style.display='none'; popupVisible=false; }
 document.addEventListener('click', (e) => { if (popupVisible && !document.getElementById('evt-popup').contains(e.target)) hideEvtPopup(); });
 
+// =========================================================
+// 今日の一言（motivational messages from life philosophy）
+// =========================================================
+const MOTIVATIONAL_MSGS = [
+  { msg:'変わり続けることで、変わらないものを守る。', sub:'今日も、その途中にいる。' },
+  { msg:'通奏低音として、今日も静かに鳴り続けよう。', sub:'存在すること自体が、誰かの足場になる。' },
+  { msg:'余韻が残る言葉を、一つだけ届けてみよう。', sub:'鳴り終わった後も、響きは残る。' },
+  { msg:'変化の途中にある美しさを、今日も見つけよう。', sub:'完成より、移行の瞬間に美がある。' },
+  { msg:'間（ま）は欠如じゃない。充満だ。', sub:'沈黙している間も、考えている。それでいい。' },
+  { msg:'生徒から学べることが、今日も必ずある。', sub:'気づいたら自分の方が変わっていた。それでいい。' },
+  { msg:'8割で出す。完璧を待たない。', sub:'まず届けることで、初めて完成する。' },
+  { msg:'足場を作ることが、人が立てる場所を生む。', sub:'今日の丁寧さが、明日の誰かを支える。' },
+  { msg:'「聴く」——耳ではなく、全身で。', sub:'波長が合っているか、今日もリアルタイムで確認しよう。' },
+  { msg:'教育を足場に、文学と音楽で世界に名を刻む。', sub:'それが今日の自分のミッションだ。' },
+  { msg:'受け取ってもらって、初めて完成する。', sub:'今日も、届けることを諦めない。' },
+  { msg:'今ここの音だけに、全身を預ける。', sub:'余計な雑念を手放せば、演奏は語り始める。' },
+  { msg:'今いる場所の責任を、まず誠実に果たす。', sub:'それが通奏低音として在り続けることだ。' },
+  { msg:'背景を読む。表面ではなく、心理的状態を先に。', sub:'「何を話すか」より「今の波長が合っているか」。' },
+];
+function getDailyMotivation() {
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return MOTIVATIONAL_MSGS[dayOfYear % MOTIVATIONAL_MSGS.length];
+}
+
+// =========================================================
+// 習慣チェック (my_lifestyle_review_sheet.md より)
+// =========================================================
+const HABITS = [
+  // 睡眠・生活リズム
+  { id:'early_rise', label:'早寝早起き（決めた時間に起床・就寝）', cat:'🌙 睡眠・生活' },
+  { id:'sleep_6h',   label:'6時間以上の睡眠を確保する', cat:'🌙 睡眠・生活' },
+  { id:'bath',       label:'湯船に入る（39〜40℃・10〜15分）', cat:'🌙 睡眠・生活' },
+  // 食事・ヘルスケア
+  { id:'sunscreen',  label:'日焼け止め + 保湿（入浴後すぐ）', cat:'🥗 食事・ケア' },
+  { id:'floss',      label:'デンタルフロスをする', cat:'🥗 食事・ケア' },
+  { id:'low_sugar',  label:'糖質・揚げ物を控える', cat:'🥗 食事・ケア' },
+  // 運動・姿勢
+  { id:'exercise',   label:'20分以上の軽い運動（会話できる強度）', cat:'💪 運動・姿勢' },
+  { id:'posture',    label:'仕事中に良い姿勢を保つ', cat:'💪 運動・姿勢' },
+  // 整理整頓・習慣管理
+  { id:'tidy_room',  label:'部屋を整理整頓・清潔に保つ', cat:'🧹 習慣管理' },
+  { id:'no_shorts',  label:'ショート動画・ゴシップを見ない', cat:'🧹 習慣管理' },
+  // 仕事術・対人
+  { id:'good_new',   label:'Good & New を記録する（24h以内）', cat:'📝 仕事術' },
+  { id:'two_min',    label:'2分以内タスクはすぐ実行する', cat:'📝 仕事術' },
+  { id:'grooming',   label:'身だしなみを完璧に整える', cat:'📝 仕事術' },
+];
+const STORAGE_HABITS = 'sensei_habits';
+let habitDate = dateToString(new Date()); // 習慣チェックの表示日
+
+function loadHabits() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_HABITS) || '{}'); } catch { return {}; }
+}
+function saveHabitsData(data) {
+  try { localStorage.setItem(STORAGE_HABITS, JSON.stringify(data)); } catch {}
+}
+function toggleHabit(habitId) {
+  const data = loadHabits();
+  if (!data[habitDate]) data[habitDate] = {};
+  data[habitDate][habitId] = !data[habitDate][habitId];
+  saveHabitsData(data);
+  renderHabitTab();
+}
+function renderHabitTab() {
+  const data = loadHabits();
+  const todayData = data[habitDate] || {};
+  const checked = HABITS.filter(h => todayData[h.id]).length;
+  const total = HABITS.length;
+  const pct = Math.round((checked / total) * 100);
+  const d = stringToDate(habitDate);
+  const dateLabel = `${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+
+  // ヘッダー
+  let html = `
+    <div class="habit-date-nav">
+      <button class="habit-date-btn" id="habit-prev-btn">‹</button>
+      <span class="habit-date-label">${dateLabel}</span>
+      <button class="habit-date-btn" id="habit-next-btn">›</button>
+    </div>
+    <div class="habit-header-card">
+      <div class="habit-header-top">
+        <span class="habit-header-title">今日の習慣チェック</span>
+        <span class="habit-score-txt">${checked} / ${total}</span>
+      </div>
+      <div class="habit-progress-wrap">
+        <div class="habit-progress-fill" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+
+  // カテゴリ別にグルーピング
+  const cats = [...new Set(HABITS.map(h => h.cat))];
+  cats.forEach(cat => {
+    html += `<div class="habit-section-label">${cat}</div>`;
+    HABITS.filter(h => h.cat === cat).forEach(h => {
+      const isChecked = !!todayData[h.id];
+      html += `<div class="habit-item${isChecked?' checked':''}" data-habit="${h.id}">
+        <div class="habit-check">${isChecked ? '✓' : ''}</div>
+        <div class="habit-label">${escHtml(h.label)}</div>
+      </div>`;
+    });
+  });
+
+  const panel = document.getElementById('mob-habit');
+  panel.innerHTML = html;
+
+  // イベント登録
+  panel.querySelectorAll('.habit-item[data-habit]').forEach(el => {
+    el.addEventListener('click', () => toggleHabit(el.dataset.habit));
+  });
+  document.getElementById('habit-prev-btn').addEventListener('click', () => {
+    const d2 = stringToDate(habitDate); d2.setDate(d2.getDate()-1); habitDate = dateToString(d2); renderHabitTab();
+  });
+  document.getElementById('habit-next-btn').addEventListener('click', () => {
+    const d2 = stringToDate(habitDate); d2.setDate(d2.getDate()+1); habitDate = dateToString(d2); renderHabitTab();
+  });
+}
+
+// =========================================================
+// グリーティングオーバーレイ（モバイル専用・1日1回）
+// =========================================================
+const STORAGE_GREETING = 'sensei_greeting_shown';
+function initGreeting() {
+  if (!isMobile()) return;
+  const today = dateToString(new Date());
+  if (localStorage.getItem(STORAGE_GREETING) === today) return;
+  const mot = getDailyMotivation();
+  const q = getTodayMorningQuestion();
+  const d = new Date();
+  const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+  const overlay = document.getElementById('greeting-overlay');
+  overlay.innerHTML = `
+    <div class="greeting-card">
+      <div class="greeting-date-str">${dateStr}</div>
+      <div class="greeting-msg">${escHtml(mot.msg)}</div>
+      <div class="greeting-sub">${escHtml(mot.sub)}</div>
+      <div class="greeting-divider"></div>
+      <div class="greeting-q-label">今日の問い</div>
+      <div class="greeting-q">${escHtml(q)}</div>
+      <button class="greeting-dismiss" id="greeting-dismiss-btn">今日も行こう →</button>
+    </div>`;
+  overlay.classList.add('visible');
+  document.getElementById('greeting-dismiss-btn').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+    localStorage.setItem(STORAGE_GREETING, today);
+  });
+}
+
 // --- 朝の問い（曜日別ローテーション・life philosophy / music philosophy 由来）---
 const MORNING_QUESTIONS = [
   '今日という一日が終わったとき、どんな「間（ま）」が残っていてほしいか？', // 日
@@ -1388,7 +1579,15 @@ function showToast(msg) {
 function switchMobTab(tab) {
   document.getElementById('m-tab-cal').classList.toggle('active', tab==='cal');
   document.getElementById('m-tab-log').classList.toggle('active', tab==='log');
+  document.getElementById('m-tab-habit').classList.toggle('active', tab==='habit');
   document.getElementById('mob-log').classList.toggle('visible', tab==='log');
+  const habitEl = document.getElementById('mob-habit');
+  if (tab === 'habit') {
+    habitEl.classList.add('visible');
+    renderHabitTab();
+  } else {
+    habitEl.classList.remove('visible');
+  }
 }
 
 // --- mob-log 初期化 (HTML重複をJSで解消) ---
@@ -1512,6 +1711,7 @@ if (!localStorage.getItem(PRESET_V2)) {
 }
 
 initMobLog(); buildCalendar(); scrollToSchoolStart(); renderLogEntries(); updateRefDateLabel();
+initGreeting();
 document.getElementById('morning-q-text').textContent = getTodayMorningQuestion();
 setInterval(updateNowLine, 60000);
 </script>
