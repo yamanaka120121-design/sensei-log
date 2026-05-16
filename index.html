@@ -364,6 +364,22 @@ body.view-month .cal-scroll{display:none}
 .habit-overlay-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:2px;transition:width .3s}
 .habit-overlay-go{background:var(--cyan);color:#000;border:none;font-size:15px;font-weight:700;padding:14px 20px;border-radius:12px;cursor:pointer;width:100%;font-family:var(--font-jp);min-height:52px;margin-top:20px;letter-spacing:.04em;transition:opacity .15s}
 .habit-overlay-skip{background:none;border:none;color:var(--text-dim);font-size:11px;padding:12px;width:100%;font-family:var(--font-jp);cursor:pointer;margin-top:4px}
+/* Google Sheets 同期（習慣タブ下部） */
+.gas-sync-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.gas-sync-status{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);transition:color .2s}
+.gas-sync-status.syncing{color:var(--amber)}
+.gas-sync-status.ok{color:var(--green)}
+.gas-sync-status.error{color:var(--red)}
+.gas-sync-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:var(--font-jp);transition:border-color .12s,color .12s}
+.gas-sync-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.gas-settings-section{margin-top:28px;margin-bottom:calc(24px + env(safe-area-inset-bottom,0px));padding:14px 16px;background:var(--bg-col);border:1px solid var(--border);border-radius:10px}
+.gas-settings-title{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px}
+.gas-settings-label{font-size:11px;color:var(--text-muted);margin-bottom:5px}
+.gas-settings-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);font-size:11px;padding:8px 10px;border-radius:6px;font-family:var(--font-mono);box-sizing:border-box;outline:none}
+.gas-settings-input:focus{border-color:var(--cyan)}
+.gas-settings-save{margin-top:8px;background:var(--cyan-bg);border:1px solid rgba(0,200,224,0.35);color:var(--cyan);font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:var(--font-jp);width:100%;transition:background .12s}
+.gas-settings-save:hover{background:rgba(0,200,224,0.18)}
+.gas-settings-note{font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.5}
   </style>
 </head>
 <body>
@@ -1800,6 +1816,7 @@ const HABITS = [
     criteria:{5:'全ての場面で実践できた',4:'ほぼできた',3:'半分程度できた',2:'断定してしまうことが多かった',1:'全く意識できなかった'} },
 ];
 const STORAGE_HABITS = 'sensei_habits';
+const STORAGE_GAS_ENDPOINT = 'sensei_gas_endpoint';
 let habitDate = dateToString(new Date()); // 習慣チェックの表示日
 
 function loadHabits() {
@@ -1808,12 +1825,52 @@ function loadHabits() {
 function saveHabitsData(data) {
   try { localStorage.setItem(STORAGE_HABITS, JSON.stringify(data)); } catch {}
 }
+function loadGasEndpoint() {
+  return localStorage.getItem(STORAGE_GAS_ENDPOINT) || '';
+}
+function saveGasEndpoint(url) {
+  try { localStorage.setItem(STORAGE_GAS_ENDPOINT, (url || '').trim()); } catch {}
+}
+
+// GAS Webアプリへ GET で同期（CORS回避。応答は no-cors では読めない）
+let _syncTimer = null;
+function syncHabitToSheets(date) {
+  const endpoint = loadGasEndpoint();
+  if (!endpoint) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => {
+    const habits = loadHabits()[date] || {};
+    setSyncStatus('syncing');
+    const url = endpoint
+      + (endpoint.indexOf('?') >= 0 ? '&' : '?')
+      + 'date=' + encodeURIComponent(date)
+      + '&habits=' + encodeURIComponent(JSON.stringify(habits));
+    fetch(url, { method: 'GET', mode: 'no-cors' })
+      .then(() => setSyncStatus('ok'))
+      .catch(() => setSyncStatus('error'));
+  }, 1500);
+}
+
+function setSyncStatus(status) {
+  const el = document.getElementById('gas-sync-status');
+  if (!el) return;
+  const map = {
+    syncing: ['⟳ 同期中…', 'syncing'],
+    ok: ['✓ Sheetsへ送信', 'ok'],
+    error: ['✕ 送信エラー', 'error'],
+  };
+  const [text, cls] = map[status] || ['', ''];
+  el.textContent = text;
+  el.className = 'gas-sync-status ' + cls;
+}
+
 function setHabitRating(habitId, val, date) {
   const d = date || habitDate;
   const data = loadHabits();
   if (!data[d]) data[d] = {};
   data[d][habitId] = (data[d][habitId] === val) ? 0 : val; // 同じ値タップで解除
   saveHabitsData(data);
+  syncHabitToSheets(d);
 }
 
 // 評価値→ラベル変換 (5=100%完璧〜1=✕取組なし)
@@ -1904,6 +1961,7 @@ function renderHabitTab() {
   const {answered, total, avgPct} = calcHabitScore(dateData);
 
   const panel = document.getElementById('mob-habit');
+  const gasUrl = loadGasEndpoint();
   const header = `
     <div class="habit-date-nav">
       <button class="habit-date-btn" id="habit-prev-btn">‹</button>
@@ -1916,10 +1974,26 @@ function renderHabitTab() {
         <span class="habit-score-txt">${avgPct}%</span>
       </div>
       <div class="habit-progress-wrap"><div class="habit-progress-fill" style="width:${avgPct}%"></div></div>
+      <div class="gas-sync-row">
+        <span class="gas-sync-status" id="gas-sync-status"></span>
+        <button type="button" class="gas-sync-btn" id="gas-manual-sync-btn" title="この日のデータを今すぐ送信">↑ この日を送信</button>
+      </div>
     </div>`;
   const itemsWrap = document.createElement('div');
+  const settingsWrap = document.createElement('div');
+  settingsWrap.innerHTML = `
+    <div class="gas-settings-section">
+      <div class="gas-settings-title">Google Sheets 同期（GAS）</div>
+      <div class="gas-settings-label">WebアプリのURL（…/exec で終わるもの）</div>
+      <input class="gas-settings-input" id="gas-endpoint-input" type="url" autocomplete="off"
+        placeholder="https://script.google.com/macros/s/…/exec"
+        value="${escHtml(gasUrl)}">
+      <button type="button" class="gas-settings-save" id="gas-endpoint-save">保存して送信テスト</button>
+      <div class="gas-settings-note">保存後、習慣を変更すると約1.5秒後に自動送信します。データはスプレッドシートの <strong>habits</strong> シートに入ります（GAS側の設定どおり）。</div>
+    </div>`;
   panel.innerHTML = header;
   panel.appendChild(itemsWrap);
+  panel.appendChild(settingsWrap);
   renderHabitItems(itemsWrap, habitDate, renderHabitTab);
 
   document.getElementById('habit-prev-btn').addEventListener('click',()=>{
@@ -1927,6 +2001,25 @@ function renderHabitTab() {
   });
   document.getElementById('habit-next-btn').addEventListener('click',()=>{
     const d2=stringToDate(habitDate); d2.setDate(d2.getDate()+1); habitDate=dateToString(d2); renderHabitTab();
+  });
+  document.getElementById('gas-manual-sync-btn').addEventListener('click', () => {
+    clearTimeout(_syncTimer);
+    const habits = loadHabits()[habitDate] || {};
+    const ep = loadGasEndpoint();
+    if (!ep) { setSyncStatus('error'); return; }
+    setSyncStatus('syncing');
+    const url = ep + (ep.indexOf('?') >= 0 ? '&' : '?')
+      + 'date=' + encodeURIComponent(habitDate)
+      + '&habits=' + encodeURIComponent(JSON.stringify(habits));
+    fetch(url, { method: 'GET', mode: 'no-cors' })
+      .then(() => setSyncStatus('ok'))
+      .catch(() => setSyncStatus('error'));
+  });
+  document.getElementById('gas-endpoint-save').addEventListener('click', () => {
+    const v = document.getElementById('gas-endpoint-input').value;
+    saveGasEndpoint(v);
+    if (v.trim()) syncHabitToSheets(habitDate);
+    else { const st = document.getElementById('gas-sync-status'); if (st) { st.textContent = ''; st.className = 'gas-sync-status'; } }
   });
 }
 
