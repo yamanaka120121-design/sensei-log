@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SENSEI.LOG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c14;--bg-col:#0d1320;--bg-hover:#111827;
+  --border:rgba(255,255,255,0.07);--border-dim:rgba(255,255,255,0.04);
+  --text:#e2e8f0;--text-muted:#8899b0;--text-dim:#2d3f57;
+  --cyan:#00c8e0;--green:#4ade80;--red:#f87171;--purple:#a78bfa;--gray:#6b7280;--amber:#fbbf24;
+  --cyan-bg:rgba(0,200,224,0.10);--green-bg:rgba(74,222,128,0.10);
+  --red-bg:rgba(248,113,113,0.10);--purple-bg:rgba(167,139,250,0.10);--gray-bg:rgba(107,114,128,0.10);
+  --header-h:52px;--sidebar-w:192px;--right-w:272px;--gutter-w:72px;--mob-nav-h:60px;
+  --font-mono:'JetBrains Mono',monospace;--font-jp:'Noto Sans JP',system-ui,sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-jp);font-size:13px;line-height:1.5;overflow:hidden}
+header{height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:20;background:var(--bg)}
+.logo{font-family:var(--font-mono);font-size:14px;font-weight:500;letter-spacing:.14em;white-space:nowrap}
+.logo-dot{color:var(--cyan)}
+.week-nav{display:flex;align-items:center;gap:4px}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--text-muted);min-width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;padding:0 6px;font-family:var(--font-jp);font-size:12px}
+.nav-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.week-label{font-family:var(--font-mono);font-size:12px;color:var(--text);white-space:nowrap;min-width:110px;text-align:center}
+.view-tabs{display:flex;gap:2px;background:var(--bg-col);border-radius:5px;padding:2px;border:1px solid var(--border)}
+.view-tab{padding:4px 12px;border-radius:3px;cursor:pointer;font-size:12px;color:var(--text-muted);border:none;background:none;font-family:var(--font-jp);transition:background .15s,color .15s;min-height:28px}
+.view-tab.active{background:var(--bg-hover);color:var(--text)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.today-date{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap}
+.today-date strong{color:var(--cyan)}
+.rp-toggle-btn{background:none;border:1px solid var(--border);color:var(--text-muted);min-width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;flex-shrink:0}
+.rp-toggle-btn:hover{border-color:var(--purple);color:var(--purple)}
+.rp-toggle-btn.active{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,0.08)}
+.add-btn{background:var(--cyan);color:#000;border:none;padding:7px 14px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-jp);white-space:nowrap;transition:opacity .15s;min-height:34px}
+.add-btn:hover{opacity:.85}
+.app-body{display:flex;height:calc(100vh - var(--header-h));overflow:hidden}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 12px;gap:22px}
+.sidebar::-webkit-scrollbar{width:3px} .sidebar::-webkit-scrollbar-thumb{background:var(--border)}
+.s-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px}
+.legend-list{list-style:none;display:flex;flex-direction:column;gap:4px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);padding:5px;border-radius:3px;cursor:pointer;transition:background .1s,color .1s;min-height:30px;user-select:none}
+.legend-item:hover{background:var(--bg-hover)}
+.legend-item.filter-active{background:var(--bg-hover);color:var(--text);outline:1px solid rgba(255,255,255,0.08)}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.evt.filtered-out{opacity:0.06;pointer-events:none}
+.mini-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.mini-dow{font-size:9px;color:var(--text-dim);font-family:var(--font-mono);padding:2px 0}
+.mini-day{font-family:var(--font-mono);font-size:11px;padding:4px 1px;border-radius:3px;color:var(--text-muted);cursor:pointer;transition:background .1s,color .1s;min-height:22px} .mini-day:hover{background:var(--bg-hover);color:var(--text)}
+.mini-day.today{background:var(--cyan);color:#000;font-weight:500} .mini-day.in-week{color:var(--text);background:rgba(255,255,255,0.04)} .mini-day.other-m{color:var(--text-dim)}
+.stat-item{margin-bottom:8px} .stat-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.stat-label{color:var(--text-muted)} .stat-val{font-family:var(--font-mono);font-size:11px}
+.stat-bar-wrap{height:3px;background:rgba(255,255,255,0.06);border-radius:2px} .stat-bar{height:3px;border-radius:2px;transition:width .4s ease;min-width:4px}
+.calendar-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.cal-scroll{flex:1;overflow-y:auto;overflow-x:auto}
+.cal-scroll::-webkit-scrollbar{width:5px;height:5px} .cal-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px} .cal-scroll::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
+.day-header-row{display:flex;position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.dh-gutter{width:var(--gutter-w);flex-shrink:0;position:sticky;left:0;z-index:11;background:var(--bg)}
+.day-header{flex:1;text-align:center;padding:5px 2px 2px;border-left:1px solid var(--border);cursor:pointer;transition:background .1s;overflow:hidden} .day-header:hover{background:var(--bg-hover)}
+.day-dow{font-size:10px;letter-spacing:.08em;color:var(--text-muted);font-family:var(--font-mono);text-transform:uppercase;display:block}
+.day-num{font-family:var(--font-mono);font-size:19px;font-weight:500;color:var(--text);line-height:1.1;display:block}
+.day-header.is-today .day-dow{color:var(--cyan);font-weight:600}
+.day-header.is-today .day-num{color:#000;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;text-shadow:none;font-weight:700;line-height:1}
+.pattern-select{display:block;width:calc(100% - 4px);margin:2px 2px 3px;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-jp);font-size:10px;padding:2px 3px;border-radius:3px;outline:none;cursor:pointer;height:20px;-webkit-appearance:auto;appearance:auto;text-align-last:center}
+.pattern-select:hover,.pattern-select:focus{color:var(--text);border-color:var(--cyan);background:var(--bg-hover)}
+.pattern-select option{font-size:13px;background:var(--bg-col)}
+.time-body{display:flex;position:relative} .time-gutter-labels{width:var(--gutter-w);flex-shrink:0;position:sticky;left:0;z-index:8;background:var(--bg)}
+.tl-hour{position:absolute;right:6px;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.72);transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-weight:500;letter-spacing:.02em}
+.tl-period{position:absolute;right:38px;font-size:10px;color:rgba(255,255,255,0.62);transform:translateY(-50%);white-space:nowrap;pointer-events:none;font-family:var(--font-jp);letter-spacing:.02em;font-weight:500}
+.hour-line{position:absolute;left:var(--gutter-w);right:0;height:1px;background:var(--border-dim);pointer-events:none;z-index:0}
+.half-line{position:absolute;left:var(--gutter-w);right:0;height:1px;background:rgba(255,255,255,0.018);pointer-events:none;z-index:0}
+.day-cols{flex:1;display:flex;position:relative}
+.day-col{flex:1;border-left:1px solid var(--border-dim);position:relative;min-width:110px}
+.day-col.is-today{background:rgba(0,200,224,0.03);box-shadow:inset 1px 0 0 rgba(0,200,224,0.18)}
+body.view-day .day-col:not(.mob-show),body.view-day .day-header:not(.mob-show){display:none}
+body.view-day .day-header.mob-show{flex:1}
+.sband{position:absolute;left:0;right:0;pointer-events:none;z-index:0}
+.sband-period{background:rgba(74,222,128,0.04)} .sband-break{background:rgba(255,255,255,0.016)}
+.sband-lunch{background:rgba(251,191,36,0.065)} .sband-asagaku{background:rgba(0,200,224,0.055)}
+.sband-shr{background:rgba(167,139,250,0.048)} .sband-souji{background:rgba(107,114,128,0.07)} .sband-morning{background:rgba(100,116,139,0.05)}
+.sband-lbl{position:absolute;left:4px;top:2px;font-size:8.5px;color:rgba(255,255,255,0.30);font-family:var(--font-jp);pointer-events:none;white-space:nowrap;font-weight:500;letter-spacing:.02em}
+.evt{position:absolute;left:4px;right:4px;border-radius:4px;border-left:3px solid;padding:3px 18px 3px 5px;cursor:pointer;overflow:hidden;z-index:3;transition:opacity .15s,transform .1s;min-height:18px}
+.evt:hover{opacity:.82;transform:translateX(1px)} .evt.user-evt{cursor:grab;opacity:.95}
+.evt.dragging{cursor:grabbing;opacity:0.72;z-index:999;pointer-events:none;transition:none}
+.evt.lesson{background:rgba(74,222,128,0.13);border-color:var(--green)} .evt.club{background:rgba(0,200,224,0.13);border-color:var(--cyan)}
+.evt.event{background:rgba(248,113,113,0.13);border-color:var(--red)} .evt.private{background:rgba(167,139,250,0.13);border-color:var(--purple)}
+.evt.other{background:rgba(107,114,128,0.13);border-color:var(--gray)}
+.evt-title{font-size:11.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.evt-sub{font-size:10px;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+/* ✕ 削除ボタン (ユーザーイベント専用) */
+.evt-del{position:absolute;top:1px;right:2px;width:15px;height:15px;background:none;border:none;color:rgba(255,255,255,0.22);cursor:pointer;font-size:9px;display:none;align-items:center;justify-content:center;z-index:5;border-radius:2px;padding:0;line-height:1;font-family:monospace;transition:color .12s,background .12s}
+.evt.user-evt:hover .evt-del{display:flex}
+.evt-del:hover{color:var(--red)!important;background:rgba(248,113,113,0.18)}
+/* 現在時刻ライン — より目立つよう改善 */
+.now-line{position:absolute;left:0;right:0;height:2px;background:var(--red);opacity:.9;z-index:15;pointer-events:none;box-shadow:0 0 6px rgba(248,113,113,0.5)}
+.now-line::before{content:'';position:absolute;left:-2px;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 5px rgba(248,113,113,0.7)}
+/* Right panel: hidden by default, shown when body.rp-open */
+.right-panel{width:var(--right-w);flex-shrink:0;border-left:1px solid var(--border);display:none;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:20px}
+body.rp-open .right-panel{display:flex}
+.right-panel::-webkit-scrollbar{width:3px} .right-panel::-webkit-scrollbar-thumb{background:var(--border)}
+.p-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px}
+.mq-card{background:rgba(26,92,50,0.2);border:1px solid rgba(74,222,128,0.12);border-left:3px solid var(--green);border-radius:6px;padding:12px 14px}
+.mq-text{font-size:12px;color:var(--text);line-height:1.75}
+.mq-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:6px}
+.ref-card{background:var(--bg-col);border:1px solid var(--border);border-radius:6px;padding:12px}
+.ref-date-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:.04em}
+.ref-textarea{width:100%;height:110px;background:none;border:none;outline:none;color:var(--text);font-family:var(--font-jp);font-size:13px;line-height:1.8;resize:none}
+.ref-textarea::placeholder{color:var(--text-dim);font-size:12px;line-height:1.7}
+.ref-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-dim);padding-top:8px;margin-top:6px}
+.char-ct{font-family:var(--font-mono);font-size:10px;color:var(--text-dim)} .char-ct span{color:var(--text-muted)} .char-ct.warn span{color:var(--amber)} .char-sep{color:var(--text-dim)}
+.ref-send{background:var(--purple);color:#fff;border:none;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;font-family:var(--font-jp);font-weight:500;min-height:34px;transition:opacity .15s;white-space:nowrap}
+.ref-send:hover{opacity:.82}
+.ar-card{background:var(--bg-col);border:1px solid var(--border);border-radius:6px;padding:12px}
+.ar-loading{font-size:12px;color:var(--text-muted);text-align:center;padding:14px 0} @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}} .ar-blink{animation:blink 1.2s infinite}
+.ar-sec-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:7px}
+.ar-corrected{font-size:12px;color:var(--text);line-height:1.8;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.15);border-radius:4px;padding:10px 12px;white-space:pre-wrap;word-break:break-all}
+.ar-point{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border-dim)}
+.ar-point:last-child{border-bottom:none} .ar-point-num{font-family:var(--font-mono);font-size:10px;color:var(--purple);flex-shrink:0;padding-top:1px;min-width:18px}
+.ar-point-title-text{font-size:11px;font-weight:500;color:var(--text);margin-bottom:2px} .ar-point-detail{font-size:11px;color:var(--text-muted);line-height:1.6}
+.log-toggle-btn{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:none;cursor:pointer;padding:0;font-family:var(--font-jp);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);transition:color .15s} .log-toggle-btn:hover{color:var(--text-muted)}
+.log-entry{padding:8px 0;border-bottom:1px solid var(--border-dim)} .log-entry:last-child{border-bottom:none}
+.log-dt{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:3px} .log-txt{font-size:11px;color:var(--text-muted);line-height:1.6}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-col);border:1px solid var(--border);border-radius:10px;width:100%;max-width:440px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,0.7);animation:modalIn .18s ease} @keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:none}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px} .modal-title{font-size:13px;font-weight:500;letter-spacing:.05em}
+.modal-x{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1;padding:4px;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px} .modal-x:hover{color:var(--text);background:var(--bg-hover)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-jp);font-size:14px;padding:9px 10px;border-radius:5px;outline:none;transition:border-color .15s;min-height:42px;-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:var(--cyan)} .field input::placeholder{color:var(--text-dim)}
+.field input[type="date"]::-webkit-calendar-picker-indicator,.field input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(0.5);cursor:pointer}
+.field-row{display:flex;gap:10px} .field-row .field{flex:1}
+.period-time-info{font-family:var(--font-mono);font-size:11px;color:var(--cyan);margin-top:5px;min-height:17px;letter-spacing:.02em}
+.cat-pills{display:flex;flex-wrap:wrap;gap:6px}
+.cat-pill{padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);color:var(--text-muted);transition:all .15s;min-height:32px;background:none;font-family:var(--font-jp)}
+.cat-pill[data-cat="lesson"].active{background:var(--green-bg);border-color:var(--green);color:var(--green)} .cat-pill[data-cat="club"].active{background:var(--cyan-bg);border-color:var(--cyan);color:var(--cyan)}
+.cat-pill[data-cat="event"].active{background:var(--red-bg);border-color:var(--red);color:var(--red)} .cat-pill[data-cat="private"].active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+.cat-pill[data-cat="other"].active{background:var(--gray-bg);border-color:var(--gray);color:var(--gray)} .cat-pill:hover{border-color:var(--text-muted);color:var(--text)}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:13px;padding:9px 18px;border-radius:5px;cursor:pointer;font-family:var(--font-jp);min-height:42px;transition:border-color .15s}
+.btn-cancel:hover{border-color:var(--text-muted);color:var(--text)}
+.btn-save{background:var(--cyan);color:#000;border:none;font-size:13px;padding:9px 20px;border-radius:5px;cursor:pointer;font-family:var(--font-jp);font-weight:500;min-height:42px;transition:opacity .15s} .btn-save:hover{opacity:.85}
+.btn-del{background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red);font-size:13px;padding:9px 18px;border-radius:5px;cursor:pointer;font-family:var(--font-jp);min-height:42px;transition:background .15s;margin-right:auto} .btn-del:hover{background:var(--red-bg)}
+/* Popup */
+.evt-popup{position:fixed;background:#131c2e;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 15px;z-index:100;min-width:210px;max-width:270px;box-shadow:0 12px 40px rgba(0,0,0,0.75),0 2px 8px rgba(0,0,0,0.4);animation:popIn .14s cubic-bezier(.2,.8,.4,1)} @keyframes popIn{from{opacity:0;transform:scale(.92) translateY(4px)}to{opacity:1;transform:none}}
+.popup-cat-bar{height:3px;border-radius:2px;margin-bottom:10px} .popup-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.popup-time{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:4px} .popup-sub{font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5} .popup-actions{display:flex;gap:6px}
+.popup-edit{flex:1;background:none;border:1px solid var(--border);color:var(--text-muted);font-size:11px;padding:6px 10px;border-radius:4px;cursor:pointer;font-family:var(--font-jp);transition:border-color .15s;min-height:32px} .popup-edit:hover{border-color:var(--cyan);color:var(--cyan)}
+.popup-del{flex:1;background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red);font-size:11px;padding:6px 10px;border-radius:4px;cursor:pointer;font-family:var(--font-jp);transition:background .15s;min-height:32px} .popup-del:hover{background:var(--red-bg)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-col);border:1px solid var(--border);padding:10px 20px;border-radius:20px;font-size:12px;color:var(--text-muted);opacity:0;transition:opacity .2s,transform .2s;z-index:300;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)} @media(min-width:768px){.toast{bottom:24px}}
+/* Mobile */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--mob-nav-h);background:var(--bg-col);border-top:1px solid var(--border);z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.mobile-nav-inner{display:flex;height:100%} .m-tab.active{color:var(--cyan)}
+.m-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:var(--font-jp);font-size:10px;transition:color .15s;min-height:44px}
+.m-tab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.mob-log{display:none;position:fixed;top:var(--header-h);left:0;right:0;bottom:var(--mob-nav-h);background:var(--bg);z-index:40;overflow-y:auto;padding:20px 16px;flex-direction:column;gap:20px}
+.mob-log.visible{display:flex} .mob-log .ref-textarea{height:140px;font-size:16px} .mob-log .ref-send{min-height:44px}
+@media(max-width:767px){
+  :root{--gutter-w:44px;--header-h:50px}
+  .sidebar,.right-panel,.view-tabs,.today-date,.rp-toggle-btn{display:none}
+  .add-btn{padding:8px 12px;font-size:11px} .week-label{min-width:100px;font-size:11px}
+  .app-body{height:calc(100vh - var(--header-h) - var(--mob-nav-h) - env(safe-area-inset-bottom,0px))} .mobile-nav{display:flex}
+  .day-col{display:none} .day-col.mob-show{display:block}
+  .day-header{display:none} .day-header.mob-show{display:block;flex:1}
+  .dh-gutter{width:var(--gutter-w)} .modal{max-width:100%;border-radius:14px} .evt-popup{max-width:calc(100vw - 32px)}
+  .nav-btn{min-width:40px;height:40px}
+  /* iOS 自動ズーム防止: モーダル内入力はすべて 16px 以上 */
+  .field input,.field select{font-size:16px !important}
+  /* スマホでは削除ボタンを常時表示 */
+  .evt.user-evt .evt-del{display:flex;color:rgba(255,255,255,0.38)}
+}
+@media(max-width:400px){.logo{font-size:12px}}
+/* アクセシビリティ: フォーカスリング */
+*:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:3px}
+*:focus:not(:focus-visible){outline:none}
+/* Undo トーストボタン */
+.toast-undo{background:none;border:1px solid rgba(255,255,255,0.28);color:var(--text);font-size:11px;padding:3px 10px;border-radius:3px;cursor:pointer;font-family:var(--font-jp);margin-left:8px;transition:background .15s;vertical-align:middle}
+.toast-undo:hover{background:rgba(255,255,255,0.09)}
+/* タッチドラッグ: スクロールとの競合防止 */
+.evt.user-evt{touch-action:none}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SENSEI<span class="logo-dot">.</span>LOG</div>
+  <div class="week-nav">
+    <button class="nav-btn" id="btn-prev" aria-label="前へ">&#8249;</button>
+    <span class="week-label" id="week-label"></span>
+    <button class="nav-btn" id="btn-next" aria-label="次へ">&#8250;</button>
+    <button class="nav-btn" id="btn-today">今日</button>
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" data-view="week">週</button>
+    <button class="view-tab" data-view="day">日</button>
+  </div>
+  <div class="header-right">
+    <div class="today-date" id="today-date"></div>
+    <button class="rp-toggle-btn" id="rp-toggle-btn" aria-label="振り返りパネル" aria-expanded="false">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    </button>
+    <button class="add-btn" id="btn-add">＋ 予定を追加</button>
+  </div>
+</header>
+
+<div class="app-body">
+  <aside class="sidebar">
+    <div>
+      <div class="s-title">カテゴリ</div>
+      <ul class="legend-list" role="group" aria-label="カテゴリフィルター">
+        <li class="legend-item" data-cat="lesson" tabindex="0" role="checkbox" aria-checked="false"><span class="legend-dot" style="background:var(--green)"></span>授業</li>
+        <li class="legend-item" data-cat="club" tabindex="0" role="checkbox" aria-checked="false"><span class="legend-dot" style="background:var(--cyan)"></span>部活動</li>
+        <li class="legend-item" data-cat="event" tabindex="0" role="checkbox" aria-checked="false"><span class="legend-dot" style="background:var(--red)"></span>学校行事</li>
+        <li class="legend-item" data-cat="private" tabindex="0" role="checkbox" aria-checked="false"><span class="legend-dot" style="background:var(--purple)"></span>プライベート</li>
+        <li class="legend-item" data-cat="other" tabindex="0" role="checkbox" aria-checked="false"><span class="legend-dot" style="background:var(--gray)"></span>その他</li>
+      </ul>
+    </div>
+    <div>
+      <div class="s-title" id="mini-cal-month"></div>
+      <div class="mini-cal-grid" id="mini-cal-grid">
+        <div class="mini-dow">日</div><div class="mini-dow">月</div><div class="mini-dow">火</div>
+        <div class="mini-dow">水</div><div class="mini-dow">木</div><div class="mini-dow">金</div>
+        <div class="mini-dow">土</div>
+      </div>
+    </div>
+    <div id="week-stats"><div class="s-title">今週の内訳</div></div>
+  </aside>
+
+  <main class="calendar-main">
+    <div class="cal-scroll" id="cal-scroll">
+      <div class="day-header-row" id="day-header-row"><div class="dh-gutter"></div></div>
+      <div class="time-body" id="time-body">
+        <div class="time-gutter-labels" id="time-gutter-labels"></div>
+        <div class="day-cols" id="day-cols"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div>
+      <div class="p-title">朝の問い</div>
+      <div class="mq-card">
+        <div class="mq-text" id="morning-q-text"></div>
+        <div class="mq-meta">SENSEI.LOG &nbsp;·&nbsp; 06:30</div>
+      </div>
+    </div>
+    <div>
+      <div class="p-title">今日の振り返り</div>
+      <div class="ref-card">
+        <div class="ref-date-label" id="ref-date-label"></div>
+        <textarea class="ref-textarea" id="log-ta" maxlength="150"
+          placeholder="今日一日の出来事・気づき・感情を150字以内で振り返ってください。良かったことや学びを中心に、明日への一言も添えて。"></textarea>
+        <div class="ref-foot">
+          <div class="char-ct" id="char-ct-wrap"><span id="char-ct">0</span><span class="char-sep"> / 150</span></div>
+          <button class="ref-send" id="log-send-btn">振り返りを記録 →</button>
+        </div>
+      </div>
+    </div>
+    <div id="ai-review-section" style="display:none">
+      <div class="p-title">AI添削フィードバック</div>
+      <div class="ar-card">
+        <div id="ar-loading" class="ar-loading">分析中<span class="ar-blink">...</span></div>
+        <div id="ar-result" style="display:none">
+          <div class="ar-sec-label">添削文</div>
+          <div class="ar-corrected" id="ar-corrected-text"></div>
+          <div class="ar-sec-label" style="margin-top:14px">要注意ポイント</div>
+          <div id="ar-points-list"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <button class="log-toggle-btn" id="log-toggle-btn">
+        <span>過去の振り返り</span><span id="log-toggle-icon" style="font-size:10px">▸</span>
+      </button>
+      <div id="log-history-wrap" style="display:none;margin-top:8px">
+        <div id="log-entries-desktop"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="m-tab active" id="m-tab-cal" onclick="switchMobTab('cal')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      カレンダー
+    </button>
+    <button class="m-tab" id="m-tab-log" onclick="switchMobTab('log')">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      ログ
+    </button>
+  </div>
+</nav>
+
+<div class="mob-log" id="mob-log"><!-- JS で生成 --></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title-text">予定を追加</div>
+      <button class="modal-x" id="modal-close" aria-label="閉じる">&#215;</button>
+    </div>
+
+    <!-- カテゴリ (常時表示) -->
+    <div class="field">
+      <label>カテゴリ</label>
+      <div class="cat-pills">
+        <button class="cat-pill active" data-cat="lesson">授業</button>
+        <button class="cat-pill" data-cat="club">部活動</button>
+        <button class="cat-pill" data-cat="event">学校行事</button>
+        <button class="cat-pill" data-cat="private">プライベート</button>
+        <button class="cat-pill" data-cat="other">その他</button>
+      </div>
+    </div>
+
+    <!-- 通常モード: タイトル -->
+    <div class="field" id="f-title" style="display:none">
+      <label>タイトル</label>
+      <input type="text" id="ev-title" placeholder="例：文化祭 準備" autocomplete="off">
+    </div>
+
+    <!-- 授業モード: 時限 -->
+    <div class="field" id="f-period">
+      <label>時限</label>
+      <select id="ev-period">
+        <option value="朝学">朝学</option>
+        <option value="朝SHR">朝SHR</option>
+        <option value="1限" selected>1時間目</option>
+        <option value="2限">2時間目</option>
+        <option value="3限">3時間目</option>
+        <option value="4限">4時間目</option>
+        <option value="5限">5時間目</option>
+        <option value="6限">6時間目</option>
+        <option value="終SHR">終SHR</option>
+        <option value="ホームルーム">ホームルーム</option>
+        <option value="進路講演会">進路講演会</option>
+        <option value="その他">その他（時刻を指定）</option>
+      </select>
+      <div class="period-time-info" id="ev-period-time"></div>
+    </div>
+
+    <!-- 授業モード: クラス + 教科名 -->
+    <div class="field-row" id="f-lesson-row">
+      <div class="field">
+        <label>クラス</label>
+        <input type="text" id="ev-class" list="class-list" placeholder="2年3組" autocomplete="off">
+        <datalist id="class-list">
+          <option value="1年1組"><option value="2年1組"><option value="2年2組">
+          <option value="2年3組"><option value="2年4組"><option value="2年5組">
+        </datalist>
+      </div>
+      <div class="field">
+        <label>教科名</label>
+        <input type="text" id="ev-subject" list="subject-list" placeholder="文学国語" autocomplete="off">
+        <datalist id="subject-list">
+          <option value="現代の国語"><option value="論理国語"><option value="文学国語">
+          <option value="ホームルーム"><option value="進路講演会">
+        </datalist>
+      </div>
+    </div>
+
+    <!-- 日付 (常時表示) -->
+    <div class="field"><label>日付</label><input type="date" id="ev-date"></div>
+
+    <!-- 時刻 (通常モード or 授業モードのカスタム時刻) -->
+    <div class="field-row" id="f-time" style="display:none">
+      <div class="field"><label>開始</label><input type="time" id="ev-start" value="09:10"></div>
+      <div class="field"><label>終了</label><input type="time" id="ev-end" value="10:00"></div>
+    </div>
+
+    <!-- 備考 (常時表示) -->
+    <div class="field">
+      <label>備考（任意）</label>
+      <input type="text" id="ev-sub" list="notes-list" placeholder="例：テスト・監督・補講・自習" autocomplete="off">
+      <datalist id="notes-list">
+        <option value="テスト"><option value="監督"><option value="補講"><option value="自習">
+      </datalist>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-del" id="modal-del-btn" style="display:none">削除</button>
+      <button class="btn-cancel" id="modal-cancel-btn">キャンセル</button>
+      <button class="btn-save" id="modal-save-btn">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="evt-popup" id="evt-popup" style="display:none" role="dialog" aria-modal="false"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+const PX_PER_MIN = 1.5, START_HOUR = 5, END_HOUR = 22;
+const TOTAL_H = (END_HOUR - START_HOUR) * 60 * PX_PER_MIN;
+const DAYS_EN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DAYS_JP = ['日','月','火','水','木','金','土'];
+const DOW_JP  = ['日','月','火','水','木','金','土'];
+const CAT_LABELS = { lesson:'授業', club:'部活動', event:'学校行事', private:'プライベート', other:'その他' };
+const CAT_COLORS = { lesson:'var(--green)', club:'var(--cyan)', event:'var(--red)', private:'var(--purple)', other:'var(--gray)' };
+const STORAGE_EVENTS = 'sensei_user_events', STORAGE_REFLECT = 'sensei_reflections';
+const STORAGE_PATTERNS = 'sensei_day_patterns', SCHEMA_VERSION = 'sensei_schema_v2';
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function abbrevClass(cls) {
+  if (!cls) return '';
+  const m = cls.match(/(\d+)年(\w+)組/);
+  return m ? `${m[1]}-${m[2]}` : cls;
+}
+function abbrevLesson(ev) {
+  if (ev.cat !== 'lesson') return ev.title;
+  const c = abbrevClass(ev.classname);
+  const s = ev.subject || '';
+  return (c || s) ? `${c}${s}` : (ev.period || ev.title);
+}
+
+// --- 時間割 ---
+function buildSchoolSchedule({ asagaku = true, periodMins = 50 } = {}) {
+  const slots = [{ start:'05:00', end:'08:44', label:'', type:'morning' }];
+  let cur = 8 * 60 + 45;
+  const push = (label, type, mins) => { const s = minsToTime(cur); cur += mins; slots.push({ start:s, end:minsToTime(cur), label, type }); };
+  if (asagaku) push('朝学','asagaku',10);
+  push('朝SHR','shr',15); push('1限','period',periodMins); push('休憩','break',10);
+  push('2限','period',periodMins); push('休憩','break',10); push('3限','period',periodMins);
+  push('昼休み','lunch',40); push('4限','period',periodMins); push('休憩','break',10);
+  push('5限','period',periodMins); push('休憩','break',10); push('6限','period',periodMins);
+  cur += 5; push('終SHR','shr',5); push('掃除','souji',5);
+  return slots;
+}
+
+const SCHOOL             = buildSchoolSchedule();
+const SCHOOL_NO_ASAGAKU  = buildSchoolSchedule({ asagaku: false });
+const SCHOOL_45          = buildSchoolSchedule({ periodMins: 45 });
+const SCHOOL_NO_ASAGAKU_45 = buildSchoolSchedule({ asagaku: false, periodMins: 45 });
+
+const PATTERNS = { std: SCHOOL, no_ag: SCHOOL_NO_ASAGAKU, std45: SCHOOL_45, no_ag45: SCHOOL_NO_ASAGAKU_45, none: [] };
+const PATTERN_NAMES = { std:'朝学あり・50分', no_ag:'朝学なし・50分', std45:'朝学あり・45分', no_ag45:'朝学なし・45分', none:'時間割なし' };
+// 部活動開始時刻（パターン別）
+const CLUB_START = { std:'16:00', no_ag:'15:50', std45:'15:30', no_ag45:'15:20', none:null };
+
+function getPeriodsForPattern(patternKey) {
+  const slots = PATTERNS[patternKey] || PATTERNS.std;
+  const result = {};
+  let pNum = 0, shrCount = 0;
+  for (const s of slots) {
+    if (s.type === 'asagaku') result['朝学'] = { start:s.start, end:s.end };
+    else if (s.type === 'shr') { shrCount++; if (shrCount===1) result['朝SHR']={start:s.start,end:s.end}; else result['終SHR']={start:s.start,end:s.end}; }
+    else if (s.type === 'period') { pNum++; result[`${pNum}限`]={start:s.start,end:s.end}; }
+    else if (s.type === 'lunch') result['昼休み']={start:s.start,end:s.end};
+  }
+  return result;
+}
+
+function findNearestPeriod(startMins, patternKey) {
+  const periods = getPeriodsForPattern(patternKey);
+  const keys = ['1限','2限','3限','4限','5限','6限'];
+  // まずクリック位置がコマの時間範囲内かを確認（5限をクリックして6限にならないよう）
+  for (const k of keys) {
+    if (periods[k]) {
+      const pStart = timeToMins(periods[k].start);
+      const pEnd   = timeToMins(periods[k].end);
+      if (startMins >= pStart && startMins < pEnd) return k;
+    }
+  }
+  // 範囲外（休憩・移動時間等）なら最近接コマ開始時刻
+  let best = '1限', bestDiff = Infinity;
+  for (const k of keys) {
+    if (periods[k]) {
+      const diff = Math.abs(timeToMins(periods[k].start) - startMins);
+      if (diff < bestDiff) { bestDiff = diff; best = k; }
+    }
+  }
+  return best;
+}
+
+// 毎週繰り返すイベント（day: 0=日〜6=土）
+// cat:'lesson' + period:'N限' の場合、実行時にパターンから時刻を解決する
+// clubActivity:true の場合、CLUB_START から開始時刻を解決する
+const DEFAULT_EVENTS = [
+  // ─── 月曜（day:1）───
+  { day:1, period:'1限', cat:'lesson', classname:'2年3組', subject:'文学国語' },
+  { day:1, period:'3限', cat:'lesson', classname:'2年4組', subject:'文学国語' },
+  { day:1, period:'4限', cat:'lesson', classname:'2年1組', subject:'論理国語' },
+  { day:1, clubActivity:true, cat:'club', title:'吹奏楽部' },
+  // ─── 火曜（day:2）───
+  { day:2, period:'1限', cat:'lesson', classname:'1年1組', subject:'現代の国語' },
+  { day:2, period:'3限', cat:'lesson', classname:'2年5組', subject:'文学国語' },
+  { day:2, period:'5限', cat:'lesson', classname:'2年2組', subject:'文学国語' },
+  { day:2, period:'6限', cat:'lesson', classname:'2年1組', subject:'文学国語' },
+  { day:2, clubActivity:true, cat:'club', title:'吹奏楽部' },
+  // ─── 水曜（day:3）───
+  { day:3, period:'3限', cat:'lesson', classname:'2年3組', subject:'文学国語' },
+  { day:3, period:'4限', cat:'lesson', classname:'2年1組', subject:'文学国語' },
+  { day:3, period:'6限', cat:'lesson', classname:'2年2組', subject:'ホームルーム' },
+  { day:3, clubActivity:true, cat:'club', title:'吹奏楽部' },
+  // ─── 木曜（day:4）───
+  { day:4, period:'3限', cat:'lesson', classname:'1年1組', subject:'現代の国語' },
+  { day:4, period:'4限', cat:'lesson', classname:'2年1組', subject:'論理国語' },
+  { day:4, clubActivity:true, cat:'club', title:'吹奏楽部' },
+  // ─── 金曜（day:5）───
+  { day:5, period:'1限', cat:'lesson', classname:'2年4組', subject:'文学国語' },
+  { day:5, period:'4限', cat:'lesson', classname:'2年5組', subject:'文学国語' },
+  { day:5, period:'6限', cat:'lesson', classname:'2年2組', subject:'文学国語' },
+  { day:5, clubActivity:true, cat:'club', title:'吹奏楽部' },
+];
+
+// --- Storage ---
+function loadUserEvents() { try { return JSON.parse(localStorage.getItem(STORAGE_EVENTS) || '[]'); } catch { return []; } }
+function saveUserEvents(arr) {
+  try { localStorage.setItem(STORAGE_EVENTS, JSON.stringify(arr)); }
+  catch(e) { if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED') showToast('ストレージ容量が不足しています'); }
+}
+function loadReflections() { try { return JSON.parse(localStorage.getItem(STORAGE_REFLECT) || '[]'); } catch { return []; } }
+function saveReflections(arr) {
+  try { localStorage.setItem(STORAGE_REFLECT, JSON.stringify(arr)); }
+  catch(e) { if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED') showToast('ストレージ容量が不足しています'); }
+}
+function loadDayPatterns() { try { return JSON.parse(localStorage.getItem(STORAGE_PATTERNS) || '{}'); } catch { return {}; } }
+function saveDayPatterns(obj) {
+  try { localStorage.setItem(STORAGE_PATTERNS, JSON.stringify(obj)); }
+  catch(e) { if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED') showToast('ストレージ容量が不足しています'); }
+}
+
+let userEvents = loadUserEvents();
+let dayPatterns = loadDayPatterns();
+let weekOffset = 0, currentView = 'week', editingEventId = null;
+let selectedDay = new Date().getDay(); // 0=日〜6=土、今日の曜日インデックス
+let activeFilter = null;
+
+function getDayPattern(dateStr) { return dayPatterns[dateStr] || 'std'; }
+
+// --- Helpers ---
+function toY(hhmm) { const [h,m] = hhmm.split(':').map(Number); return ((h-START_HOUR)*60+m)*PX_PER_MIN; }
+function toH(s,e) { return Math.max(toY(e)-toY(s), 18); }
+function timeToMins(hhmm) { const [h,m] = hhmm.split(':').map(Number); return h*60+m; }
+function minsToTime(mins) { return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`; }
+function isMobile() { return window.innerWidth < 768; }
+function isSameDay(a,b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function getMonday(offset) {
+  // 日曜始まりの週: offset=0→今週の日曜, offset=1→来週の日曜, offset=-1→先週の日曜
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dow = today.getDay(); // 0=日, 1=月, ..., 6=土
+  const d = new Date(today);
+  d.setDate(today.getDate() - dow + (offset||0)*7); // 日曜日に戻す
+  return d;
+}
+function dateToString(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function stringToDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); }
+function getGutterW() { return isMobile() ? 44 : 72; }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+function getEventsForWeek(wOffset) {
+  const mon = getMonday(wOffset);
+  const days = Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
+  const result = [];
+  DEFAULT_EVENTS.forEach(ev => {
+    const d = days[ev.day];
+    const dateStr = dateToString(d);
+    const pattern = getDayPattern(dateStr);
+    let start = ev.start || '', end = ev.end || '';
+    let title = ev.title || '';
+    if (ev.clubActivity) {
+      // 部活：パターン別の開始時刻を解決
+      const cs = CLUB_START[pattern];
+      if (!cs) return; // 'none' パターンは部活なし
+      start = cs; end = '18:00';
+      title = ev.title || '吹奏楽部';
+    } else if (ev.period && ev.cat === 'lesson') {
+      // 授業：パターンから時刻を解決
+      const periods = getPeriodsForPattern(pattern);
+      const pt = periods[ev.period];
+      if (!pt) return; // そのパターンにコマがなければスキップ
+      start = pt.start; end = pt.end;
+      title = [ev.classname, ev.subject].filter(Boolean).join(' ') || ev.period;
+    }
+    if (!start || !end) return;
+    result.push({
+      colIdx: ev.day, start, end, title,
+      sub: ev.sub || '', cat: ev.cat, isUser: false,
+      period: ev.period || '', classname: ev.classname || '', subject: ev.subject || ''
+    });
+  });
+  userEvents.forEach(ev => {
+    const colIdx = days.findIndex(d => isSameDay(d, stringToDate(ev.date)));
+    if (colIdx >= 0) result.push({ colIdx, start:ev.start, end:ev.end, title:ev.title, sub:ev.sub||'', cat:ev.cat, id:ev.id, isUser:true, period:ev.period||'', classname:ev.classname||'', subject:ev.subject||'' });
+  });
+  return result;
+}
+
+// --- Calendar Build ---
+function buildCalendar() {
+  const mon = getMonday(weekOffset), today = new Date();
+  today.setHours(0,0,0,0);
+  const days = Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
+  const isDay = currentView==='day' && !isMobile();
+  document.body.classList.toggle('view-day', isDay);
+
+  if (isMobile() || isDay) {
+    const d = days[selectedDay];
+    document.getElementById('week-label').textContent = `${DOW_JP[d.getDay()]}曜 ${d.getMonth()+1}/${d.getDate()}`;
+  } else {
+    const last = days[6];
+    document.getElementById('week-label').textContent = `${mon.getMonth()+1}/${mon.getDate()} — ${last.getMonth()+1}/${last.getDate()}`;
+  }
+  document.getElementById('today-date').innerHTML = `TODAY &nbsp;<strong>${today.getMonth()+1}/${today.getDate()}</strong>`;
+
+  const headerRow = document.getElementById('day-header-row');
+  headerRow.querySelectorAll('.day-header').forEach(e => e.remove());
+  days.forEach((d, i) => {
+    const show = (isMobile()||isDay) ? i===selectedDay : true;
+    const dh = document.createElement('div');
+    dh.className = 'day-header'+(isSameDay(d,today)?' is-today':'')+(show?' mob-show':'');
+    dh.dataset.dayIdx = i;
+    dh.innerHTML = `<span class="day-dow">${DOW_JP[d.getDay()]}</span><span class="day-num">${d.getDate()}</span>`;
+    if (!isMobile() && currentView==='week') dh.title = '日表示に切り替え';
+    dh.addEventListener('click', () => { if (!isMobile() && currentView==='week') { selectedDay=i; setView('day'); } });
+
+    // パターンセレクター (平日=月〜金 + PC のみ)
+    if (d.getDay() >= 1 && d.getDay() <= 5 && !isMobile()) {
+      const ps = document.createElement('select');
+      ps.className = 'pattern-select';
+      const dateStr = dateToString(d);
+      const curPat = getDayPattern(dateStr);
+      Object.entries(PATTERN_NAMES).forEach(([k, label]) => {
+        const opt = document.createElement('option');
+        opt.value = k; opt.textContent = label;
+        if (k === curPat) opt.selected = true;
+        ps.appendChild(opt);
+      });
+      ps.addEventListener('click', e => e.stopPropagation());
+      ps.addEventListener('change', e => {
+        dayPatterns[dateStr] = e.target.value;
+        saveDayPatterns(dayPatterns);
+        buildCalendar();
+      });
+      dh.appendChild(ps);
+    }
+    headerRow.appendChild(dh);
+  });
+
+  const timeBody = document.getElementById('time-body'), gutterW = getGutterW();
+  timeBody.style.height = TOTAL_H+'px';
+  const gutterEl = document.getElementById('time-gutter-labels');
+  gutterEl.innerHTML = ''; gutterEl.style.width = gutterW+'px';
+  for (let h = START_HOUR; h <= END_HOUR; h++) {
+    const lbl = document.createElement('div');
+    lbl.className='tl-hour'; lbl.style.top=toY(h+':00')+'px'; lbl.textContent=String(h).padStart(2,'0')+':00';
+    gutterEl.appendChild(lbl);
+  }
+  if (!isMobile()) {
+    SCHOOL.filter(s => ['period','lunch','asagaku'].includes(s.type)).forEach(s => {
+      const pl = document.createElement('div');
+      pl.className='tl-period'; pl.style.top=toY(s.start)+'px'; pl.textContent=s.label;
+      gutterEl.appendChild(pl);
+    });
+  }
+
+  timeBody.querySelectorAll('.hour-line,.half-line').forEach(e => e.remove());
+  for (let h = START_HOUR; h <= END_HOUR; h++) {
+    const ln = document.createElement('div');
+    ln.className='hour-line'; ln.style.cssText=`top:${toY(h+':00')}px;left:${gutterW}px;`;
+    timeBody.appendChild(ln);
+    if (h < END_HOUR) {
+      const hl = document.createElement('div');
+      hl.className='half-line'; hl.style.cssText=`top:${toY(h+':30')}px;left:${gutterW}px;`;
+      timeBody.appendChild(hl);
+    }
+  }
+
+  const dayCols = document.getElementById('day-cols');
+  dayCols.innerHTML = '';
+  const weekEvts = getEventsForWeek(weekOffset);
+  days.forEach((d, colIdx) => {
+    const show = (isMobile()||isDay) ? colIdx===selectedDay : true;
+    const col = document.createElement('div');
+    col.className = 'day-col'+(isSameDay(d,today)?' is-today':'')+(show?' mob-show':'');
+    col.dataset.dayIdx = colIdx;
+    col._dateStr = dateToString(d); // ドラッグ移動のためのカラム日付
+
+    // 学校バンド (平日=月〜金のみ、選択パターンに従う)
+    if (d.getDay() >= 1 && d.getDay() <= 5) {
+      const dateStr = dateToString(d);
+      const schedule = PATTERNS[getDayPattern(dateStr)] || [];
+      schedule.forEach(s => {
+        const band = document.createElement('div');
+        band.className=`sband sband-${s.type}`; band.style.cssText=`top:${toY(s.start)}px;height:${toH(s.start,s.end)}px;`;
+        const lbl = document.createElement('div'); lbl.className='sband-lbl'; lbl.textContent=s.label;
+        band.appendChild(lbl); col.appendChild(band);
+      });
+    }
+
+    col.addEventListener('click', (e) => {
+      if (!e.target.closest('.evt')) {
+        const mins = Math.round((e.clientY-col.getBoundingClientRect().top)/PX_PER_MIN/15)*15;
+        const startMins = START_HOUR*60+Math.max(0,Math.min(mins,(END_HOUR-START_HOUR)*60-30));
+        openModal(null, dateToString(d), minsToTime(startMins), minsToTime(startMins+50));
+      }
+    });
+
+    weekEvts.filter(ev => ev.colIdx===colIdx).forEach(ev => {
+      const block = document.createElement('div');
+      block.className=`evt ${ev.cat}`+(ev.isUser?' user-evt':'');
+      const blockH = toH(ev.start, ev.end);
+      block.style.cssText=`top:${toY(ev.start)}px;height:${blockH}px;`;
+
+      const timeStr = `${ev.start}–${ev.end}`;
+      const periodLabel = (ev.period && ev.cat === 'lesson') ? ev.period : '';
+
+      let inner = `<div class="evt-title">${escHtml(abbrevLesson(ev))}</div>`;
+      if (blockH >= 30) {
+        // 時限ラベルと時刻を両方表示
+        inner += `<div class="evt-sub">${periodLabel ? escHtml(periodLabel) + '　' : ''}${timeStr}</div>`;
+      }
+      if (ev.sub && blockH >= 56) inner += `<div class="evt-sub">${escHtml(ev.sub)}</div>`;
+      // ユーザーイベントのみ ✕ 削除ボタン（PC: ホバー表示）
+      if (ev.isUser) inner += `<button class="evt-del" title="削除" aria-label="削除">✕</button>`;
+      block.innerHTML = inner;
+
+      if (activeFilter && ev.cat !== activeFilter) block.classList.add('filtered-out');
+      if (ev.isUser) {
+        block.querySelector('.evt-del').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteWithUndo(ev.id);
+        });
+        block.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('.evt-del')) return; // 削除ボタンはドラッグ除外
+          startEvtDrag(e, ev, block, col, d);
+        });
+      } else {
+        block.addEventListener('click', (e) => { e.stopPropagation(); showEvtPopup(e,ev,d); });
+      }
+      col.appendChild(block);
+    });
+    dayCols.appendChild(col);
+  });
+  updateNowLine(); buildMiniCal(); updateMiniCalWeek(); renderWeekStats();
+}
+
+let nowLineEl = null;
+function updateNowLine() {
+  const timeBody = document.getElementById('time-body');
+  if (!nowLineEl) { nowLineEl = document.createElement('div'); nowLineEl.className='now-line'; timeBody.appendChild(nowLineEl); }
+  const now = new Date(), h = now.getHours(), m = now.getMinutes();
+  if (h >= START_HOUR && h < END_HOUR) {
+    nowLineEl.style.cssText=`top:${toY(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)}px;left:${getGutterW()}px;display:block;`;
+  } else { nowLineEl.style.display='none'; }
+}
+
+function fmtHours(h) {
+  if (h <= 0) return '0分';
+  const totalMins = Math.round(h * 60);
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (mins === 0) return `${hrs}時間`;
+  if (hrs === 0) return `${mins}分`;
+  return `${hrs}時間${mins}分`;
+}
+
+function renderWeekStats() {
+  const container = document.getElementById('week-stats'); if (!container) return;
+  const totals = { club:0, event:0, private:0, other:0 };
+  const weekEvts = getEventsForWeek(weekOffset);
+  weekEvts.forEach(ev => {
+    const dur = (timeToMins(ev.end)-timeToMins(ev.start))/60;
+    if (dur > 0 && totals[ev.cat] !== undefined) totals[ev.cat] += dur;
+  });
+  const lessonCount = weekEvts.filter(ev => ev.cat === 'lesson').length;
+
+  // 空きコマ数 (月〜金)
+  const _ws = getMonday(weekOffset);
+  let freePeriods = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(_ws); d.setDate(_ws.getDate()+i);
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    const dateStr = dateToString(d);
+    const pat = getDayPattern(dateStr);
+    if (pat === 'none') continue;
+    const periods = getPeriodsForPattern(pat);
+    const totalPeriods = Object.keys(periods).filter(k => /^\d限$/.test(k)).length;
+    // DEFAULT_EVENTS の授業 + ユーザー追加の授業を両方カウント
+    const defaultLessons = DEFAULT_EVENTS.filter(ev => ev.day === d.getDay() && ev.cat === 'lesson' && ev.period).length;
+    const userLessons = userEvents.filter(ev => ev.date===dateStr && ev.cat==='lesson').length;
+    freePeriods += Math.max(0, totalPeriods - defaultLessons - userLessons);
+  }
+
+  const maxVal = Math.max(...Object.values(totals), 0.1);
+  const rows = [
+    {key:'club',label:'部活動',color:'var(--cyan)'},{key:'event',label:'学校行事',color:'var(--red)'},
+    {key:'private',label:'プライベート',color:'var(--purple)'},
+  ];
+  let html = '<div class="s-title">今週の内訳</div>';
+  if (lessonCount > 0) {
+    html += `<div class="stat-item"><div class="stat-row"><span class="stat-label">授業</span><span class="stat-val" style="color:var(--green)">${lessonCount} コマ</span></div></div>`;
+  }
+  if (freePeriods > 0) {
+    html += `<div class="stat-item"><div class="stat-row"><span class="stat-label">空きコマ</span><span class="stat-val" style="color:var(--text-muted)">${freePeriods} コマ</span></div></div>`;
+  }
+  rows.forEach(r => {
+    const h = totals[r.key]; if (h===0) return;
+    const pct = Math.round((h/maxVal)*100);
+    html += `<div class="stat-item"><div class="stat-row"><span class="stat-label">${r.label}</span><span class="stat-val" style="color:${r.color}">${fmtHours(h)}</span></div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%;background:${r.color}"></div></div></div>`;
+  });
+  const total = Object.values(totals).reduce((a,b)=>a+b,0);
+  if (total > 0) {
+    html += `<div class="stat-item" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border-dim)"><div class="stat-row"><span class="stat-label">合計</span><span class="stat-val" style="color:var(--text-muted)">${fmtHours(total)}</span></div></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function buildMiniCal() {
+  const grid = document.getElementById('mini-cal-grid');
+  grid.querySelectorAll('.mini-day').forEach(e => e.remove());
+  const today = new Date();
+  const viewMon = getMonday(weekOffset);
+  const year = viewMon.getFullYear(), month = viewMon.getMonth();
+  document.getElementById('mini-cal-month').textContent = `${year}年 ${month+1}月`;
+  const first = new Date(year, month, 1);
+  const offset = first.getDay(); // 日曜始まり: 日=0, 月=1, ..., 土=6
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const prevDays = new Date(year, month, 0).getDate();
+
+  const navigateTo = (date) => {
+    // クリックした日付が属する週（日曜始まり）に移動
+    const target = new Date(date); target.setHours(0,0,0,0);
+    weekOffset = Math.round((target - getMonday(0)) / (7*86400000));
+    selectedDay = target.getDay(); // 0=日〜6=土
+    buildCalendar(); scrollToSchoolStart();
+  };
+  for (let i = 0; i < offset; i++) {
+    const date = new Date(year, month-1, prevDays-offset+1+i);
+    const el = document.createElement('div'); el.className='mini-day other-m';
+    el.textContent=prevDays-offset+1+i; el.title='前の月';
+    el.addEventListener('click', () => navigateTo(date));
+    grid.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div'), date = new Date(year, month, d);
+    el.className='mini-day'+(isSameDay(date,today)?' today':''); el.textContent=d;
+    el.addEventListener('click', () => navigateTo(date));
+    grid.appendChild(el);
+  }
+  const totalCells = offset + daysInMonth;
+  const trailingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= trailingCells; i++) {
+    const date = new Date(year, month+1, i);
+    const el = document.createElement('div'); el.className='mini-day other-m';
+    el.textContent=i; el.title='次の月';
+    el.addEventListener('click', () => navigateTo(date));
+    grid.appendChild(el);
+  }
+}
+
+function updateMiniCalWeek() {
+  const mon = getMonday(weekOffset);
+  document.querySelectorAll('.mini-day').forEach(el => el.classList.remove('in-week'));
+  for (let i = 0; i < 7; i++) {
+    const wd = new Date(mon); wd.setDate(mon.getDate()+i);
+    if (wd.getMonth()!==mon.getMonth()) continue;
+    document.querySelectorAll('.mini-day:not(.today):not(.other-m)').forEach(el => {
+      if (parseInt(el.textContent)===wd.getDate()) el.classList.add('in-week');
+    });
+  }
+}
+
+function scrollToSchoolStart() {
+  const scroll = document.getElementById('cal-scroll'), now = new Date(), h = now.getHours(), m = now.getMinutes();
+  const targetY = (weekOffset===0 && h>=START_HOUR && h<END_HOUR)
+    ? toY(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)-120 : toY('08:35');
+  scroll.scrollTop = Math.max(0, targetY);
+}
+
+function shift(dir) {
+  const dayMode = isMobile() || currentView==='day';
+  if (dayMode) {
+    selectedDay += dir;
+    if (selectedDay < 0) { weekOffset--; selectedDay=6; buildCalendar(); return; }
+    if (selectedDay > 6) { weekOffset++; selectedDay=0; buildCalendar(); return; }
+    const d = new Date(getMonday(weekOffset)); d.setDate(d.getDate()+selectedDay);
+    document.getElementById('week-label').textContent=`${DOW_JP[d.getDay()]}曜 ${d.getMonth()+1}/${d.getDate()}`;
+    document.querySelectorAll('.day-col,.day-header').forEach(el => {
+      const idx = parseInt(el.dataset.dayIdx); if (!isNaN(idx)) el.classList.toggle('mob-show', idx===selectedDay);
+    });
+    updateNowLine();
+  } else { weekOffset+=dir; buildCalendar(); }
+}
+
+function goToday() {
+  weekOffset=0; selectedDay=new Date().getDay();
+  buildCalendar(); scrollToSchoolStart();
+}
+
+function setView(v) {
+  currentView=v;
+  document.body.classList.toggle('view-day', v==='day' && !isMobile());
+  document.querySelectorAll('.view-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.view===v));
+  buildCalendar();
+}
+document.querySelectorAll('.view-tab').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+function getDefaultDate() { const d=new Date(getMonday(weekOffset)); d.setDate(d.getDate()+selectedDay); return dateToString(d); }
+
+// --- カテゴリフィルター ---
+function toggleCategoryFilter(cat) {
+  activeFilter = (activeFilter === cat) ? null : cat;
+  document.querySelectorAll('.legend-item').forEach(li => {
+    const active = li.dataset.cat === activeFilter;
+    li.classList.toggle('filter-active', active);
+    li.setAttribute('aria-checked', active ? 'true' : 'false');
+  });
+  buildCalendar();
+}
+document.querySelectorAll('.legend-item[data-cat]').forEach(item => {
+  item.addEventListener('click', () => toggleCategoryFilter(item.dataset.cat));
+  item.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategoryFilter(item.dataset.cat); }
+  });
+});
+
+// --- 右パネルトグル ---
+document.getElementById('rp-toggle-btn').addEventListener('click', () => {
+  const isOpen = document.body.classList.toggle('rp-open');
+  const btn = document.getElementById('rp-toggle-btn');
+  btn.classList.toggle('active', isOpen);
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+});
+
+// --- Modal: 授業モード ---
+function isLessonMode() {
+  return document.querySelector('.cat-pill.active')?.dataset.cat === 'lesson';
+}
+
+function switchLessonMode(isLesson) {
+  document.getElementById('f-title').style.display = isLesson ? 'none' : 'block';
+  document.getElementById('f-period').style.display = isLesson ? 'block' : 'none';
+  document.getElementById('f-lesson-row').style.display = isLesson ? 'flex' : 'none';
+  if (!isLesson) {
+    document.getElementById('f-time').style.display = 'flex';
+  } else {
+    updatePeriodTime();
+  }
+}
+
+function updatePeriodTime() {
+  const period = document.getElementById('ev-period').value;
+  const date = document.getElementById('ev-date').value || getDefaultDate();
+  const pattern = getDayPattern(date);
+  const periods = getPeriodsForPattern(pattern);
+  const pt = periods[period];
+  const infoEl = document.getElementById('ev-period-time');
+  const fTime = document.getElementById('f-time');
+
+  if (pt) {
+    infoEl.textContent = `${pt.start} – ${pt.end}`;
+    document.getElementById('ev-start').value = pt.start;
+    document.getElementById('ev-end').value = pt.end;
+    fTime.style.display = 'none';
+  } else {
+    infoEl.textContent = '時刻を入力してください';
+    fTime.style.display = 'flex';
+  }
+}
+
+function openModal(eventId, date, startTime, endTime) {
+  editingEventId = eventId || null;
+  if (eventId) {
+    const ev = userEvents.find(e => e.id===eventId); if (!ev) return;
+    document.getElementById('modal-title-text').textContent = '予定を編集';
+    document.getElementById('ev-date').value = ev.date;
+    document.getElementById('ev-sub').value = ev.sub || '';
+    selectCatPill(ev.cat);
+    if (ev.cat === 'lesson') {
+      document.getElementById('ev-period').value = ev.period || '1限';
+      document.getElementById('ev-class').value = ev.classname || '';
+      document.getElementById('ev-subject').value = ev.subject || '';
+      document.getElementById('ev-start').value = ev.start;
+      document.getElementById('ev-end').value = ev.end;
+      updatePeriodTime();
+    } else {
+      document.getElementById('ev-title').value = ev.title;
+      document.getElementById('ev-start').value = ev.start;
+      document.getElementById('ev-end').value = ev.end;
+    }
+    document.getElementById('modal-del-btn').style.display = '';
+    document.getElementById('modal-save-btn').textContent = '更新する';
+  } else {
+    document.getElementById('modal-title-text').textContent = '予定を追加';
+    const d = date || getDefaultDate();
+    document.getElementById('ev-date').value = d;
+    document.getElementById('ev-sub').value = '';
+    document.getElementById('ev-class').value = '';
+    document.getElementById('ev-subject').value = '';
+    document.getElementById('ev-title').value = '';
+    selectCatPill('lesson');
+    if (startTime) {
+      const pat = getDayPattern(d);
+      document.getElementById('ev-period').value = findNearestPeriod(timeToMins(startTime), pat);
+    } else {
+      document.getElementById('ev-period').value = '1限';
+    }
+    document.getElementById('ev-start').value = startTime || '09:10';
+    document.getElementById('ev-end').value = endTime || '10:00';
+    updatePeriodTime();
+    document.getElementById('modal-del-btn').style.display = 'none';
+    document.getElementById('modal-save-btn').textContent = '追加する';
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+  const modal = document.getElementById('modal');
+  const focusEl = isLessonMode() ? document.getElementById('ev-class') : document.getElementById('ev-title');
+  setTimeout(() => { focusEl.focus(); trapFocus(modal); }, 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingEventId = null;
+  releaseFocusTrap(document.getElementById('modal'));
+}
+
+// --- フォーカストラップ ---
+function trapFocus(el) {
+  const sel = 'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  const focusables = Array.from(el.querySelectorAll(sel));
+  if (!focusables.length) return;
+  const first = focusables[0], last = focusables[focusables.length - 1];
+  el._trapHandler = (e) => {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+    else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+  };
+  el.addEventListener('keydown', el._trapHandler);
+}
+function releaseFocusTrap(el) {
+  if (el._trapHandler) { el.removeEventListener('keydown', el._trapHandler); el._trapHandler = null; }
+}
+
+function selectCatPill(cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat===cat));
+  switchLessonMode(cat === 'lesson');
+}
+
+document.querySelectorAll('.cat-pill').forEach(btn => btn.addEventListener('click', () => selectCatPill(btn.dataset.cat)));
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target===document.getElementById('modal-overlay')) closeModal(); });
+
+// キーボード
+document.addEventListener('keydown', (e) => {
+  if (e.key==='Escape') { closeModal(); hideEvtPopup(); }
+  const tag = document.activeElement.tagName;
+  if (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT') return;
+  if (e.key==='ArrowLeft')  { e.preventDefault(); shift(-1); }
+  if (e.key==='ArrowRight') { e.preventDefault(); shift(1); }
+});
+
+// IME対応 Enter送信
+let isComposing = false;
+document.addEventListener('compositionstart', () => isComposing = true);
+document.addEventListener('compositionend',   () => isComposing = false);
+['ev-title','ev-class','ev-subject','ev-sub'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key==='Enter' && !isComposing) { e.preventDefault(); document.getElementById('modal-save-btn').click(); }
+  });
+});
+
+// 時限変更 → 時刻自動更新
+document.getElementById('ev-period').addEventListener('change', updatePeriodTime);
+document.getElementById('ev-date').addEventListener('change', () => { if (isLessonMode()) updatePeriodTime(); });
+
+// 開始時刻変更 → 終了時刻調整 (通常モードのみ)
+document.getElementById('ev-start').addEventListener('change', function() {
+  if (isLessonMode()) return;
+  const endEl = document.getElementById('ev-end');
+  if (timeToMins(endEl.value) <= timeToMins(this.value)) {
+    endEl.value = minsToTime(Math.min(timeToMins(this.value) + 50, END_HOUR * 60));
+  }
+});
+
+// 保存
+document.getElementById('modal-save-btn').addEventListener('click', () => {
+  const cat = document.querySelector('.cat-pill.active')?.dataset.cat || 'other';
+  const date = document.getElementById('ev-date').value;
+  const sub = document.getElementById('ev-sub').value.trim();
+  let title, start, end, period, classname, subject;
+
+  if (cat === 'lesson') {
+    period   = document.getElementById('ev-period').value;
+    classname = document.getElementById('ev-class').value.trim();
+    subject  = document.getElementById('ev-subject').value.trim();
+    if (!subject && !classname) {
+      showToast('クラスまたは教科名を入力してください');
+      document.getElementById('ev-class').focus(); return;
+    }
+    start = document.getElementById('ev-start').value;
+    end   = document.getElementById('ev-end').value;
+    if (timeToMins(end) <= timeToMins(start)) {
+      showToast('終了は開始より後にしてください');
+      document.getElementById('ev-end').focus(); return;
+    }
+    title = [classname, subject].filter(Boolean).join(' ') || period;
+  } else {
+    title = document.getElementById('ev-title').value.trim();
+    if (!title) { document.getElementById('ev-title').focus(); return; }
+    start = document.getElementById('ev-start').value;
+    end   = document.getElementById('ev-end').value;
+    if (timeToMins(end) <= timeToMins(start)) {
+      showToast('終了は開始より後にしてください');
+      document.getElementById('ev-end').focus(); return;
+    }
+  }
+
+  const eventData = { title, cat, date, start, end, sub };
+  if (cat === 'lesson') Object.assign(eventData, { period, classname, subject });
+
+  if (editingEventId) {
+    const idx = userEvents.findIndex(e => e.id===editingEventId);
+    if (idx>=0) userEvents[idx] = { ...userEvents[idx], ...eventData };
+    showToast('更新しました');
+  } else {
+    userEvents.push({ id:uid(), ...eventData });
+    showToast('予定を追加しました');
+  }
+  saveUserEvents(userEvents); closeModal(); buildCalendar();
+});
+
+document.getElementById('modal-del-btn').addEventListener('click', () => {
+  if (!editingEventId) return;
+  deleteWithUndo(editingEventId);
+});
+document.getElementById('btn-add').addEventListener('click', () => openModal(null));
+
+// --- Undo削除 ---
+let undoStack = null, undoToastTimer = null;
+function deleteWithUndo(id) {
+  const ev = userEvents.find(e => e.id === id);
+  if (!ev) return;
+  // 直前のUndo待ちがあれば確定
+  if (undoStack) {
+    clearTimeout(undoToastTimer);
+    saveUserEvents(userEvents);
+    undoStack = null;
+  }
+  userEvents = userEvents.filter(e => e.id !== id);
+  hideEvtPopup();
+  closeModal();
+  buildCalendar();
+  // Undoトーストを表示
+  const toastEl = document.getElementById('toast');
+  toastEl.innerHTML = `削除しました <button class="toast-undo" id="undo-del-btn">元に戻す</button>`;
+  toastEl.classList.add('show');
+  document.getElementById('undo-del-btn').addEventListener('click', () => {
+    if (!undoStack) return;
+    clearTimeout(undoToastTimer);
+    userEvents.push(undoStack.ev);
+    userEvents.sort((a,b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+    saveUserEvents(userEvents);
+    buildCalendar();
+    undoStack = null;
+    showToast('削除を取り消しました');
+  });
+  undoStack = { id, ev };
+  undoToastTimer = setTimeout(() => {
+    toastEl.classList.remove('show');
+    saveUserEvents(userEvents);
+    undoStack = null;
+  }, 4000);
+}
+
+// --- ドラッグ移動 (Pointer Events: マウス・タッチ共通) ---
+function startEvtDrag(e, ev, block, col, date) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation();
+  const pointerId = e.pointerId;
+  try { block.setPointerCapture(pointerId); } catch(_) {}
+  const scrollEl = document.getElementById('cal-scroll');
+  const origTop = block.offsetTop;
+  const origClientY = e.clientY;
+  const origScrollTop = scrollEl.scrollTop;
+  const durationMins = timeToMins(ev.end) - timeToMins(ev.start);
+  let ghost = null, moved = false;
+
+  const onMove = (me) => {
+    if (me.pointerId !== pointerId) return;
+    const scrollDiff = scrollEl.scrollTop - origScrollTop;
+    const dy = (me.clientY - origClientY) + scrollDiff;
+    if (!moved && Math.abs(dy) < 6) return;
+    if (!moved) {
+      moved = true;
+      ghost = block.cloneNode(true);
+      ghost.className = block.className + ' dragging';
+      ghost.style.cssText = block.style.cssText + ';opacity:0.72;z-index:999;pointer-events:none;';
+      col.appendChild(ghost);
+      block.style.opacity = '0.18';
+    }
+    ghost.style.top = Math.max(0, origTop + dy) + 'px';
+  };
+
+  const onUp = (me) => {
+    if (me.pointerId !== pointerId) return;
+    block.removeEventListener('pointermove', onMove);
+    block.removeEventListener('pointerup', onUp);
+    block.removeEventListener('pointercancel', onUp);
+    if (!moved) {
+      showEvtPopup(me, ev, date);
+      return;
+    }
+    if (ghost) col.removeChild(ghost);
+    block.style.opacity = '';
+
+    // ドロップ先カラムの日付を特定
+    const targetEl = document.elementFromPoint(me.clientX, me.clientY);
+    const targetCol = (targetEl && targetEl.closest('.day-col')) || col;
+    const newDateStr = targetCol._dateStr || ev.date;
+
+    // ドロップ位置から時刻計算
+    const scrollDiff = scrollEl.scrollTop - origScrollTop;
+    const newTop = Math.max(0, origTop + (me.clientY - origClientY) + scrollDiff);
+    const rawMins = Math.round(newTop / PX_PER_MIN + START_HOUR * 60);
+    const snapped = Math.round(rawMins / 15) * 15;
+    const clampedStart = Math.max(START_HOUR * 60, Math.min(END_HOUR * 60 - durationMins, snapped));
+
+    const idx = userEvents.findIndex(ue => ue.id === ev.id);
+    if (idx >= 0) {
+      if (ev.cat === 'lesson') {
+        const pattern = getDayPattern(newDateStr);
+        const nearPeriod = findNearestPeriod(clampedStart, pattern);
+        const pt = getPeriodsForPattern(pattern)[nearPeriod];
+        if (pt) {
+          userEvents[idx] = { ...userEvents[idx], date: newDateStr, start: pt.start, end: pt.end, period: nearPeriod };
+        } else {
+          userEvents[idx] = { ...userEvents[idx], date: newDateStr, start: minsToTime(clampedStart), end: minsToTime(clampedStart + durationMins) };
+        }
+      } else {
+        userEvents[idx] = { ...userEvents[idx], date: newDateStr, start: minsToTime(clampedStart), end: minsToTime(clampedStart + durationMins) };
+      }
+      saveUserEvents(userEvents);
+    }
+    buildCalendar();
+    showToast('予定を移動しました');
+  };
+  block.addEventListener('pointermove', onMove);
+  block.addEventListener('pointerup', onUp);
+  block.addEventListener('pointercancel', onUp);
+}
+
+// --- Popup ---
+let popupVisible = false;
+function showEvtPopup(e, ev, date) {
+  e.stopPropagation();
+  const popup = document.getElementById('evt-popup');
+  popup.setAttribute('aria-label', `${ev.title} の詳細`);
+  const dateStr = date instanceof Date ? dateToString(date) : (date || getDefaultDate());
+  popup.innerHTML = `
+    <div class="popup-cat-bar" style="background:${CAT_COLORS[ev.cat]||'var(--gray)'}"></div>
+    <div class="popup-title">${escHtml(ev.title)}</div>
+    <div class="popup-time">${escHtml(ev.start)} – ${escHtml(ev.end)}${ev.period ? ` &nbsp;·&nbsp; ${escHtml(ev.period)}` : ''}</div>
+    ${ev.sub ? `<div class="popup-sub">${escHtml(ev.sub)}</div>` : ''}
+    <div class="popup-actions">
+      ${ev.isUser
+        ? `<button class="popup-del" id="popup-del-btn">削除</button>
+           <button class="popup-edit" id="popup-edit-btn">編集</button>`
+        : `<button class="popup-edit" id="popup-add-btn">＋ この時間に追加</button>`
+      }
+    </div>`;
+  if (ev.isUser) {
+    document.getElementById('popup-del-btn').addEventListener('click', () => deleteWithUndo(ev.id));
+    document.getElementById('popup-edit-btn').addEventListener('click', () => { openModal(ev.id); hideEvtPopup(); });
+  } else {
+    document.getElementById('popup-add-btn').addEventListener('click', () => {
+      openModal(null, dateStr, ev.start, ev.end);
+      hideEvtPopup();
+    });
+  }
+  popup.style.display = 'block';
+  const vw=window.innerWidth, vh=window.innerHeight, pw=popup.offsetWidth||220, ph=popup.offsetHeight||120;
+  let x=e.clientX+12, y=e.clientY-10;
+  if (x+pw>vw-8) x=e.clientX-pw-12;
+  if (y+ph>vh-8) y=vh-ph-8;
+  popup.style.left=Math.max(8,x)+'px'; popup.style.top=Math.max(8,y)+'px';
+  popupVisible = true;
+}
+function hideEvtPopup() { document.getElementById('evt-popup').style.display='none'; popupVisible=false; }
+document.addEventListener('click', (e) => { if (popupVisible && !document.getElementById('evt-popup').contains(e.target)) hideEvtPopup(); });
+
+// --- 朝の問い（曜日別ローテーション・life philosophy / music philosophy 由来）---
+const MORNING_QUESTIONS = [
+  '今日という一日が終わったとき、どんな「間（ま）」が残っていてほしいか？', // 日
+  '今日、授業以外に「生徒の記憶に残る」ことを一つできるとしたら、何をする？', // 月
+  '今日の自分の「通奏低音」は何か。授業の中でどう鳴り響くだろう？', // 火
+  '今日、誰かの「変化の途中」に気づけるとしたら、誰のどんな変化だろうか？', // 水
+  '今日の授業で「余韻」を残せる言葉を一つ選ぶとしたら？', // 木
+  '今日の部活で、部員に届けたい「一つの音楽」は何だろうか？', // 金
+  '今日の空き時間（リソース）を使うとしたら、何に一番エネルギーを注ぎたい？', // 土
+];
+function getTodayMorningQuestion() {
+  return MORNING_QUESTIONS[new Date().getDay()];
+}
+
+// --- AI Review (mock) ---
+const AI_FEEDBACK_POOL = [
+  { title:'常体・敬体の統一', detail:'「〜だった」と「〜でした」が混在している場合があります。常体（だ・である調）で統一すると一貫性が増します。' },
+  { title:'感情の具体化', detail:'「嬉しかった」「良かった」に理由を添えると自己理解が深まります。「〜だったから〜だった」の構造を意識してみてください。' },
+  { title:'次の行動への接続', detail:'「次は〜してみる」という視点を1文入れると、振り返りを明日の行動につなげられます。' },
+  { title:'主語の明確化', detail:'「生徒が」「自分が」など動作の主体を明確にすると、読み返したときに場面が鮮明に蘇ります。' },
+  { title:'具体的な場面の描写', detail:'「いつ・どこで・誰と」という情報を1つ加えると記憶の解像度が上がります。固有名詞や時刻を意識してみてください。' },
+  { title:'内面変化の記述', detail:'外部の出来事だけでなく「自分が何を考えたか・気づいたか」を書くと、思考パターンの抽出に役立ちます。' },
+  { title:'文末表現の多様性', detail:'文末が「〜た。」の繰り返しになると単調に見えます。推量・気づき表現を1文加えてみてください。' },
+];
+
+function triggerAIReview(text, prefix) {
+  const p=prefix||'', section=document.getElementById(p+'ai-review-section');
+  const loading=document.getElementById(p+'ar-loading'), result=document.getElementById(p+'ar-result');
+  if (!section) return;
+  section.style.display='block'; loading.style.display='block'; result.style.display='none';
+  section.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(() => {
+    const points=[...AI_FEEDBACK_POOL].sort(()=>Math.random()-0.5).slice(0,3);
+    document.getElementById(p+'ar-corrected-text').textContent=text.trim();
+    document.getElementById(p+'ar-points-list').innerHTML=points.map((pt,i)=>
+      `<div class="ar-point"><div class="ar-point-num">0${i+1}</div><div><div class="ar-point-title-text">${pt.title}</div><div class="ar-point-detail">${pt.detail}</div></div></div>`
+    ).join('');
+    loading.style.display='none'; result.style.display='block';
+  }, 1400);
+}
+
+function toggleLogHistory(prefix) {
+  const p=prefix||'', wrap=document.getElementById(p+'log-history-wrap'), icon=document.getElementById(p+'log-toggle-icon');
+  const visible=wrap.style.display!=='none';
+  wrap.style.display=visible?'none':'block'; icon.textContent=visible?'▸':'▾';
+}
+
+function updateRefDateLabel() {
+  const now=new Date(), label=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${DOW_JP[now.getDay()]}）`;
+  ['ref-date-label','mob-ref-date-label'].forEach(id => { const el=document.getElementById(id); if (el) el.textContent=label; });
+}
+
+function renderLogEntries() {
+  const refs = loadReflections().slice().reverse().slice(0,5);
+  const html = refs.map(r => {
+    const d=stringToDate(r.date);
+    return `<div class="log-entry"><div class="log-dt">${r.date} &nbsp;${DOW_JP[d.getDay()]}</div><div class="log-txt">${escHtml(r.body)}</div></div>`;
+  }).join('')||'<div class="log-txt" style="color:var(--text-dim);font-size:11px;padding:8px 0">記録はまだありません</div>';
+  document.getElementById('log-entries-desktop').innerHTML=html;
+  document.getElementById('log-entries-mobile').innerHTML=html;
+}
+
+function saveReflection(body) {
+  if (!body.trim()) return;
+  const today=dateToString(new Date()), refs=loadReflections();
+  const idx=refs.findIndex(r=>r.date===today);
+  if (idx>=0) refs[idx].body=body; else refs.unshift({date:today,body});
+  saveReflections(refs); renderLogEntries(); showToast('記録しました ✓');
+}
+
+document.getElementById('log-send-btn').addEventListener('click', () => {
+  const text = document.getElementById('log-ta').value.trim();
+  if (!text) { document.getElementById('log-ta').focus(); return; }
+  saveReflection(text); triggerAIReview(text, '');
+  document.getElementById('log-ta').value = '';
+  document.getElementById('char-ct').textContent = '0';
+  document.getElementById('char-ct-wrap').classList.remove('warn');
+});
+document.getElementById('log-toggle-btn').addEventListener('click', () => toggleLogHistory(''));
+
+function setupCharCounter(taId, ctId, wrapId) {
+  document.getElementById(taId).addEventListener('input', function() {
+    const n = this.value.length; document.getElementById(ctId).textContent = n;
+    document.getElementById(wrapId).classList.toggle('warn', n > 120);
+  });
+}
+setupCharCounter('log-ta', 'char-ct', 'char-ct-wrap');
+
+let toastTimer;
+function showToast(msg) {
+  // Undo 待ちがあれば確定
+  if (undoStack) { clearTimeout(undoToastTimer); saveUserEvents(userEvents); undoStack = null; }
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+function switchMobTab(tab) {
+  document.getElementById('m-tab-cal').classList.toggle('active', tab==='cal');
+  document.getElementById('m-tab-log').classList.toggle('active', tab==='log');
+  document.getElementById('mob-log').classList.toggle('visible', tab==='log');
+}
+
+// --- mob-log 初期化 (HTML重複をJSで解消) ---
+function initMobLog() {
+  document.getElementById('mob-log').innerHTML = `
+    <div>
+      <div class="p-title">朝の問い</div>
+      <div class="mq-card">
+        <div class="mq-text">${escHtml(getTodayMorningQuestion())}</div>
+        <div class="mq-meta">SENSEI.LOG &nbsp;·&nbsp; 06:30</div>
+      </div>
+    </div>
+    <div>
+      <div class="p-title">今日の振り返り</div>
+      <div class="ref-card">
+        <div class="ref-date-label" id="mob-ref-date-label"></div>
+        <textarea class="ref-textarea" id="mob-log-ta" maxlength="150"
+          placeholder="今日一日の出来事・気づき・感情を150字以内で振り返ってください。良かったことや学びを中心に、明日への一言も。"></textarea>
+        <div class="ref-foot">
+          <div class="char-ct" id="mob-char-ct-wrap"><span id="mob-char-ct">0</span><span class="char-sep"> / 150</span></div>
+          <button class="ref-send" id="mob-log-send-btn">振り返りを記録 →</button>
+        </div>
+      </div>
+    </div>
+    <div id="mob-ai-review-section" style="display:none">
+      <div class="p-title">AI添削フィードバック</div>
+      <div class="ar-card">
+        <div id="mob-ar-loading" class="ar-loading">分析中<span class="ar-blink">...</span></div>
+        <div id="mob-ar-result" style="display:none">
+          <div class="ar-sec-label">添削文</div>
+          <div class="ar-corrected" id="mob-ar-corrected-text"></div>
+          <div class="ar-sec-label" style="margin-top:14px">要注意ポイント</div>
+          <div id="mob-ar-points-list"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <button class="log-toggle-btn" id="mob-log-toggle-btn">
+        <span>過去の振り返り</span><span id="mob-log-toggle-icon" style="font-size:10px">▸</span>
+      </button>
+      <div id="mob-log-history-wrap" style="display:none;margin-top:8px">
+        <div id="log-entries-mobile"></div>
+      </div>
+    </div>`;
+  // mob-log のイベントリスナー設定
+  document.getElementById('mob-log-send-btn').addEventListener('click', () => {
+    const text = document.getElementById('mob-log-ta').value.trim();
+    if (!text) { document.getElementById('mob-log-ta').focus(); return; }
+    saveReflection(text); triggerAIReview(text, 'mob-');
+    document.getElementById('mob-log-ta').value = '';
+    document.getElementById('mob-char-ct').textContent = '0';
+    document.getElementById('mob-char-ct-wrap').classList.remove('warn');
+  });
+  document.getElementById('mob-log-toggle-btn').addEventListener('click', () => toggleLogHistory('mob-'));
+  setupCharCounter('mob-log-ta', 'mob-char-ct', 'mob-char-ct-wrap');
+}
+
+(function initSwipe() {
+  const cal=document.getElementById('cal-scroll'); let startX=0, startY=0, startTime=0;
+  cal.addEventListener('touchstart', (e)=>{ startX=e.touches[0].clientX; startY=e.touches[0].clientY; startTime=Date.now(); },{passive:true});
+  cal.addEventListener('touchend', (e)=>{
+    if (!isMobile()) return;
+    const dx=e.changedTouches[0].clientX-startX, dy=e.changedTouches[0].clientY-startY;
+    if (Math.abs(dx)>Math.abs(dy)*1.8 && Math.abs(dx)>50 && Date.now()-startTime<350) shift(dx<0?1:-1);
+  },{passive:true});
+})();
+
+let resizeTimer;
+window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(buildCalendar,200); });
+document.getElementById('btn-prev').addEventListener('click', ()=>shift(-1));
+document.getElementById('btn-next').addEventListener('click', ()=>shift(1));
+document.getElementById('btn-today').addEventListener('click', goToday);
+
+if (!localStorage.getItem(SCHEMA_VERSION)) {
+  localStorage.removeItem(STORAGE_EVENTS); localStorage.removeItem(STORAGE_REFLECT);
+  localStorage.setItem(SCHEMA_VERSION,'1'); userEvents=[];
+}
+
+// 来週の特別スケジュール初期設定（一度だけ実行）
+const PRESET_V = 'sensei_preset_20260519';
+if (!localStorage.getItem(PRESET_V)) {
+  // 5/19(火)・5/20(水)・5/21(木): テスト期間 09:00-12:00
+  ['2026-05-19','2026-05-20','2026-05-21'].forEach(d => {
+    dayPatterns[d] = 'none';
+    userEvents.push({ id:uid(), title:'定期テスト', cat:'event', date:d, start:'09:00', end:'12:00', sub:'テスト期間' });
+  });
+  // 5/22(金): 校外学習（京都）
+  dayPatterns['2026-05-22'] = 'none';
+  userEvents.push({ id:uid(), title:'校外学習（京都）', cat:'event', date:'2026-05-22', start:'08:00', end:'17:30', sub:'校外学習（朝〜夕方）' });
+  // 5/23(土): 吹奏楽部 定期演奏会練習
+  userEvents.push({ id:uid(), title:'吹奏楽部 定期演奏会練習', cat:'club', date:'2026-05-23', start:'09:00', end:'16:00', sub:'定期演奏会' });
+  saveDayPatterns(dayPatterns);
+  saveUserEvents(userEvents);
+  localStorage.setItem(PRESET_V, '1');
+}
+
+// 修正パッチ v2：前回の誤設定（5/23を金曜扱い・テスト15:30）を正しい内容に更新
+const PRESET_V2 = 'sensei_preset_20260519v2';
+if (!localStorage.getItem(PRESET_V2)) {
+  // 誤って追加された旧イベントを削除
+  userEvents = userEvents.filter(ev =>
+    ev.title !== '定期テスト' && ev.title !== '校外学習（京都）'
+  );
+  // 5/23のパターンを元に戻す（土曜日なのでパターン不要）
+  delete dayPatterns['2026-05-23'];
+  // 5/22(金)に校外学習のパターンを設定
+  ['2026-05-19','2026-05-20','2026-05-21'].forEach(d => { dayPatterns[d] = 'none'; });
+  dayPatterns['2026-05-22'] = 'none';
+  // 正しいイベントを追加
+  ['2026-05-19','2026-05-20','2026-05-21'].forEach(d => {
+    userEvents.push({ id:uid(), title:'定期テスト', cat:'event', date:d, start:'09:00', end:'12:00', sub:'テスト期間' });
+  });
+  userEvents.push({ id:uid(), title:'校外学習（京都）', cat:'event', date:'2026-05-22', start:'08:00', end:'17:30', sub:'校外学習（朝〜夕方）' });
+  // 5/23(土): 吹奏楽部 定期演奏会練習（吹奏楽部イベントは重複チェック）
+  if (!userEvents.some(ev => ev.date === '2026-05-23' && ev.title === '吹奏楽部 定期演奏会練習')) {
+    userEvents.push({ id:uid(), title:'吹奏楽部 定期演奏会練習', cat:'club', date:'2026-05-23', start:'09:00', end:'16:00', sub:'定期演奏会' });
+  }
+  saveDayPatterns(dayPatterns);
+  saveUserEvents(userEvents);
+  localStorage.setItem(PRESET_V2, '1');
+}
+
+initMobLog(); buildCalendar(); scrollToSchoolStart(); renderLogEntries(); updateRefDateLabel();
+document.getElementById('morning-q-text').textContent = getTodayMorningQuestion();
+setInterval(updateNowLine, 60000);
+</script>
+</body>
+</html>
