@@ -1628,8 +1628,6 @@ function renderMonthGrid(container, year, month, onDayClick) {
 // =========================================================
 // モバイル週間ストリップ
 // =========================================================
-let mobSelectedDay = new Date().getDay(); // 0-6
-
 function buildMobWeekStrip() {
   if (!isMobile()) return;
   const strip = document.getElementById('mob-week-strip');
