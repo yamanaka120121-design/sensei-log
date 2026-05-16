@@ -874,6 +874,7 @@ function buildCalendar() {
     const col = document.createElement('div');
     col.className = 'day-col'+(isSameDay(d,today)?' is-today':'')+(show?' mob-show':'');
     col.dataset.dayIdx = colIdx;
+    col.dataset.date = dateToString(d); // 週ストリップのクリックで参照
     col._dateStr = dateToString(d); // ドラッグ移動のためのカラム日付
 
     // 学校バンド (平日=月〜金のみ、選択パターンに従う)
